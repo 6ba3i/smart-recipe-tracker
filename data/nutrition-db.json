@@ -1,0 +1,697 @@
+{
+  "foods": {
+    "proteins": {
+      "chicken_breast": {
+        "name": "Chicken Breast",
+        "serving_size": "100g",
+        "calories": 165,
+        "protein": 31,
+        "carbs": 0,
+        "fat": 3.6,
+        "fiber": 0,
+        "sugar": 0,
+        "sodium": 74,
+        "cholesterol": 85,
+        "vitamins": {
+          "B6": 0.5,
+          "B12": 0.3,
+          "niacin": 8.5
+        },
+        "minerals": {
+          "selenium": 22.0,
+          "phosphorus": 196
+        },
+        "category": "lean_protein",
+        "cost_per_100g": 3.50
+      },
+      "salmon": {
+        "name": "Atlantic Salmon",
+        "serving_size": "100g",
+        "calories": 208,
+        "protein": 25,
+        "carbs": 0,
+        "fat": 12,
+        "fiber": 0,
+        "sugar": 0,
+        "sodium": 59,
+        "cholesterol": 55,
+        "omega3": 2.3,
+        "vitamins": {
+          "D": 11,
+          "B12": 3.2,
+          "B6": 0.6
+        },
+        "minerals": {
+          "selenium": 36.5,
+          "potassium": 363
+        },
+        "category": "fatty_fish",
+        "cost_per_100g": 8.00
+      },
+      "tofu": {
+        "name": "Extra Firm Tofu",
+        "serving_size": "100g",
+        "calories": 76,
+        "protein": 8,
+        "carbs": 1.9,
+        "fat": 4.8,
+        "fiber": 0.3,
+        "sugar": 0.6,
+        "sodium": 7,
+        "cholesterol": 0,
+        "vitamins": {
+          "folate": 15,
+          "K": 2.4
+        },
+        "minerals": {
+          "calcium": 350,
+          "iron": 5.4,
+          "magnesium": 30
+        },
+        "category": "plant_protein",
+        "cost_per_100g": 2.50
+      },
+      "eggs": {
+        "name": "Large Chicken Eggs",
+        "serving_size": "1 large (50g)",
+        "calories": 78,
+        "protein": 6,
+        "carbs": 0.6,
+        "fat": 5,
+        "fiber": 0,
+        "sugar": 0.6,
+        "sodium": 62,
+        "cholesterol": 186,
+        "vitamins": {
+          "A": 80,
+          "D": 1.1,
+          "B12": 0.6,
+          "choline": 147
+        },
+        "minerals": {
+          "selenium": 15.4,
+          "phosphorus": 86
+        },
+        "category": "complete_protein",
+        "cost_per_100g": 2.80
+      },
+      "greek_yogurt": {
+        "name": "Plain Greek Yogurt",
+        "serving_size": "100g",
+        "calories": 59,
+        "protein": 10,
+        "carbs": 3.6,
+        "fat": 0.4,
+        "fiber": 0,
+        "sugar": 3.6,
+        "sodium": 36,
+        "cholesterol": 5,
+        "probiotics": true,
+        "vitamins": {
+          "B12": 0.8,
+          "riboflavin": 0.3
+        },
+        "minerals": {
+          "calcium": 110,
+          "phosphorus": 135
+        },
+        "category": "dairy_protein",
+        "cost_per_100g": 1.20
+      }
+    },
+    "carbohydrates": {
+      "quinoa": {
+        "name": "Quinoa (cooked)",
+        "serving_size": "100g",
+        "calories": 120,
+        "protein": 4.4,
+        "carbs": 22,
+        "fat": 1.9,
+        "fiber": 2.8,
+        "sugar": 0.9,
+        "sodium": 7,
+        "cholesterol": 0,
+        "vitamins": {
+          "folate": 42,
+          "E": 0.6
+        },
+        "minerals": {
+          "magnesium": 64,
+          "phosphorus": 152,
+          "iron": 1.5
+        },
+        "category": "whole_grain",
+        "cost_per_100g": 1.80,
+        "gluten_free": true
+      },
+      "brown_rice": {
+        "name": "Brown Rice (cooked)",
+        "serving_size": "100g",
+        "calories": 112,
+        "protein": 2.6,
+        "carbs": 23,
+        "fat": 0.9,
+        "fiber": 1.8,
+        "sugar": 0.4,
+        "sodium": 5,
+        "cholesterol": 0,
+        "vitamins": {
+          "niacin": 1.5,
+          "B6": 0.1
+        },
+        "minerals": {
+          "manganese": 0.9,
+          "magnesium": 43
+        },
+        "category": "whole_grain",
+        "cost_per_100g": 0.80
+      },
+      "sweet_potato": {
+        "name": "Sweet Potato (baked)",
+        "serving_size": "100g",
+        "calories": 90,
+        "protein": 2,
+        "carbs": 21,
+        "fat": 0.2,
+        "fiber": 3.3,
+        "sugar": 6.8,
+        "sodium": 6,
+        "cholesterol": 0,
+        "vitamins": {
+          "A": 19218,
+          "C": 19.6,
+          "B6": 0.2
+        },
+        "minerals": {
+          "potassium": 475,
+          "manganese": 0.5
+        },
+        "category": "starchy_vegetable",
+        "cost_per_100g": 1.00
+      },
+      "oats": {
+        "name": "Rolled Oats (dry)",
+        "serving_size": "100g",
+        "calories": 389,
+        "protein": 16.9,
+        "carbs": 66.3,
+        "fat": 6.9,
+        "fiber": 10.6,
+        "sugar": 0.4,
+        "sodium": 2,
+        "cholesterol": 0,
+        "beta_glucan": 4,
+        "vitamins": {
+          "thiamine": 0.8,
+          "folate": 56
+        },
+        "minerals": {
+          "manganese": 4.9,
+          "phosphorus": 523
+        },
+        "category": "whole_grain",
+        "cost_per_100g": 1.20
+      },
+      "banana": {
+        "name": "Banana (medium)",
+        "serving_size": "1 medium (118g)",
+        "calories": 105,
+        "protein": 1.3,
+        "carbs": 27,
+        "fat": 0.4,
+        "fiber": 3.1,
+        "sugar": 14.4,
+        "sodium": 1,
+        "cholesterol": 0,
+        "vitamins": {
+          "C": 10.3,
+          "B6": 0.4,
+          "folate": 24
+        },
+        "minerals": {
+          "potassium": 422,
+          "magnesium": 32
+        },
+        "category": "fruit",
+        "cost_per_100g": 0.60
+      }
+    },
+    "vegetables": {
+      "spinach": {
+        "name": "Spinach (raw)",
+        "serving_size": "100g",
+        "calories": 23,
+        "protein": 2.9,
+        "carbs": 3.6,
+        "fat": 0.4,
+        "fiber": 2.2,
+        "sugar": 0.4,
+        "sodium": 79,
+        "cholesterol": 0,
+        "vitamins": {
+          "K": 483,
+          "A": 469,
+          "C": 28.1,
+          "folate": 194
+        },
+        "minerals": {
+          "iron": 2.7,
+          "calcium": 99,
+          "potassium": 558
+        },
+        "category": "leafy_green",
+        "cost_per_100g": 2.50
+      },
+      "broccoli": {
+        "name": "Broccoli (raw)",
+        "serving_size": "100g",
+        "calories": 34,
+        "protein": 2.8,
+        "carbs": 7,
+        "fat": 0.4,
+        "fiber": 2.6,
+        "sugar": 1.5,
+        "sodium": 33,
+        "cholesterol": 0,
+        "vitamins": {
+          "C": 89.2,
+          "K": 102,
+          "folate": 63
+        },
+        "minerals": {
+          "potassium": 316,
+          "calcium": 47
+        },
+        "category": "cruciferous",
+        "cost_per_100g": 1.80
+      },
+      "bell_pepper": {
+        "name": "Red Bell Pepper",
+        "serving_size": "100g",
+        "calories": 31,
+        "protein": 1,
+        "carbs": 7,
+        "fat": 0.3,
+        "fiber": 2.5,
+        "sugar": 4.2,
+        "sodium": 4,
+        "cholesterol": 0,
+        "vitamins": {
+          "C": 127.7,
+          "A": 157,
+          "B6": 0.3
+        },
+        "minerals": {
+          "potassium": 211,
+          "folate": 46
+        },
+        "category": "colorful_vegetable",
+        "cost_per_100g": 2.20
+      },
+      "carrots": {
+        "name": "Carrots (raw)",
+        "serving_size": "100g",
+        "calories": 41,
+        "protein": 0.9,
+        "carbs": 10,
+        "fat": 0.2,
+        "fiber": 2.8,
+        "sugar": 4.7,
+        "sodium": 69,
+        "cholesterol": 0,
+        "vitamins": {
+          "A": 835,
+          "K": 13.2,
+          "C": 5.9
+        },
+        "minerals": {
+          "potassium": 320,
+          "calcium": 33
+        },
+        "category": "root_vegetable",
+        "cost_per_100g": 0.90
+      },
+      "avocado": {
+        "name": "Avocado",
+        "serving_size": "100g",
+        "calories": 160,
+        "protein": 2,
+        "carbs": 9,
+        "fat": 15,
+        "fiber": 7,
+        "sugar": 0.7,
+        "sodium": 7,
+        "cholesterol": 0,
+        "monounsaturated_fat": 10,
+        "vitamins": {
+          "K": 21,
+          "folate": 81,
+          "C": 10
+        },
+        "minerals": {
+          "potassium": 485,
+          "magnesium": 29
+        },
+        "category": "healthy_fat",
+        "cost_per_100g": 2.80
+      }
+    },
+    "legumes": {
+      "black_beans": {
+        "name": "Black Beans (cooked)",
+        "serving_size": "100g",
+        "calories": 132,
+        "protein": 8.9,
+        "carbs": 23,
+        "fat": 0.5,
+        "fiber": 8.7,
+        "sugar": 0.3,
+        "sodium": 2,
+        "cholesterol": 0,
+        "vitamins": {
+          "folate": 149,
+          "thiamine": 0.2
+        },
+        "minerals": {
+          "iron": 2.1,
+          "magnesium": 70,
+          "potassium": 355
+        },
+        "category": "legume",
+        "cost_per_100g": 1.20
+      },
+      "chickpeas": {
+        "name": "Chickpeas (cooked)",
+        "serving_size": "100g",
+        "calories": 164,
+        "protein": 8.9,
+        "carbs": 27,
+        "fat": 2.6,
+        "fiber": 7.6,
+        "sugar": 4.8,
+        "sodium": 7,
+        "cholesterol": 0,
+        "vitamins": {
+          "folate": 172,
+          "B6": 0.1
+        },
+        "minerals": {
+          "iron": 2.9,
+          "phosphorus": 168,
+          "potassium": 291
+        },
+        "category": "legume",
+        "cost_per_100g": 1.50
+      },
+      "lentils": {
+        "name": "Green Lentils (cooked)",
+        "serving_size": "100g",
+        "calories": 116,
+        "protein": 9,
+        "carbs": 20,
+        "fat": 0.4,
+        "fiber": 7.9,
+        "sugar": 1.8,
+        "sodium": 2,
+        "cholesterol": 0,
+        "vitamins": {
+          "folate": 181,
+          "thiamine": 0.2
+        },
+        "minerals": {
+          "iron": 3.3,
+          "phosphorus": 180,
+          "potassium": 369
+        },
+        "category": "legume",
+        "cost_per_100g": 1.00
+      }
+    },
+    "healthy_fats": {
+      "olive_oil": {
+        "name": "Extra Virgin Olive Oil",
+        "serving_size": "1 tbsp (14g)",
+        "calories": 119,
+        "protein": 0,
+        "carbs": 0,
+        "fat": 14,
+        "fiber": 0,
+        "sugar": 0,
+        "sodium": 0,
+        "cholesterol": 0,
+        "monounsaturated_fat": 10,
+        "vitamins": {
+          "E": 1.9,
+          "K": 8.1
+        },
+        "minerals": {},
+        "antioxidants": true,
+        "category": "cooking_oil",
+        "cost_per_100g": 8.00
+      },
+      "almonds": {
+        "name": "Raw Almonds",
+        "serving_size": "100g",
+        "calories": 579,
+        "protein": 21,
+        "carbs": 22,
+        "fat": 50,
+        "fiber": 12,
+        "sugar": 4.4,
+        "sodium": 1,
+        "cholesterol": 0,
+        "monounsaturated_fat": 32,
+        "vitamins": {
+          "E": 25.6,
+          "riboflavin": 1.0
+        },
+        "minerals": {
+          "magnesium": 268,
+          "calcium": 264,
+          "phosphorus": 484
+        },
+        "category": "tree_nut",
+        "cost_per_100g": 12.00
+      },
+      "chia_seeds": {
+        "name": "Chia Seeds",
+        "serving_size": "100g",
+        "calories": 486,
+        "protein": 17,
+        "carbs": 42,
+        "fat": 31,
+        "fiber": 34,
+        "sugar": 0,
+        "sodium": 16,
+        "cholesterol": 0,
+        "omega3": 17.8,
+        "vitamins": {
+          "thiamine": 0.6,
+          "niacin": 8.8
+        },
+        "minerals": {
+          "calcium": 631,
+          "phosphorus": 860,
+          "magnesium": 335
+        },
+        "category": "superfood_seed",
+        "cost_per_100g": 15.00
+      }
+    },
+    "dairy": {
+      "milk": {
+        "name": "Low-fat Milk (1%)",
+        "serving_size": "1 cup (244g)",
+        "calories": 102,
+        "protein": 8.2,
+        "carbs": 12,
+        "fat": 2.4,
+        "fiber": 0,
+        "sugar": 13,
+        "sodium": 107,
+        "cholesterol": 12,
+        "vitamins": {
+          "A": 142,
+          "D": 2.9,
+          "B12": 1.1
+        },
+        "minerals": {
+          "calcium": 290,
+          "phosphorus": 232
+        },
+        "category": "dairy",
+        "cost_per_100g": 0.80
+      },
+      "cheese": {
+        "name": "Cheddar Cheese",
+        "serving_size": "100g",
+        "calories": 403,
+        "protein": 25,
+        "carbs": 1.3,
+        "fat": 33,
+        "fiber": 0,
+        "sugar": 0.5,
+        "sodium": 621,
+        "cholesterol": 105,
+        "vitamins": {
+          "A": 265,
+          "B12": 0.8
+        },
+        "minerals": {
+          "calcium": 721,
+          "phosphorus": 512
+        },
+        "category": "dairy",
+        "cost_per_100g": 8.50
+      },
+      "feta": {
+        "name": "Feta Cheese",
+        "serving_size": "100g",
+        "calories": 264,
+        "protein": 14,
+        "carbs": 4.1,
+        "fat": 21,
+        "fiber": 0,
+        "sugar": 4.1,
+        "sodium": 1116,
+        "cholesterol": 89,
+        "vitamins": {
+          "B12": 1.7,
+          "riboflavin": 0.8
+        },
+        "minerals": {
+          "calcium": 493,
+          "phosphorus": 337
+        },
+        "category": "dairy",
+        "cost_per_100g": 9.00
+      }
+    }
+  },
+  "nutrition_targets": {
+    "adult_male": {
+      "age_range": "19-50",
+      "calories": 2500,
+      "protein": 56,
+      "carbs": 130,
+      "fat": 70,
+      "fiber": 38,
+      "sodium": 2300,
+      "calcium": 1000,
+      "iron": 8,
+      "vitamin_C": 90,
+      "vitamin_D": 15
+    },
+    "adult_female": {
+      "age_range": "19-50",
+      "calories": 2000,
+      "protein": 46,
+      "carbs": 130,
+      "fat": 65,
+      "fiber": 25,
+      "sodium": 2300,
+      "calcium": 1000,
+      "iron": 18,
+      "vitamin_C": 75,
+      "vitamin_D": 15
+    },
+    "active_male": {
+      "age_range": "19-50",
+      "calories": 3000,
+      "protein": 75,
+      "carbs": 150,
+      "fat": 100,
+      "fiber": 42,
+      "sodium": 2300,
+      "calcium": 1000,
+      "iron": 8,
+      "vitamin_C": 90,
+      "vitamin_D": 15
+    },
+    "active_female": {
+      "age_range": "19-50",
+      "calories": 2400,
+      "protein": 60,
+      "carbs": 140,
+      "fat": 80,
+      "fiber": 28,
+      "sodium": 2300,
+      "calcium": 1000,
+      "iron": 18,
+      "vitamin_C": 75,
+      "vitamin_D": 15
+    }
+  },
+  "meal_timing_multipliers": {
+    "breakfast": {
+      "calories": 0.25,
+      "protein": 0.25,
+      "carbs": 0.35,
+      "fat": 0.20
+    },
+    "lunch": {
+      "calories": 0.35,
+      "protein": 0.35,
+      "carbs": 0.40,
+      "fat": 0.35
+    },
+    "dinner": {
+      "calories": 0.30,
+      "protein": 0.35,
+      "carbs": 0.20,
+      "fat": 0.35
+    },
+    "snacks": {
+      "calories": 0.10,
+      "protein": 0.05,
+      "carbs": 0.05,
+      "fat": 0.10
+    }
+  },
+  "food_combinations": {
+    "complete_proteins": [
+      ["rice", "beans"],
+      ["quinoa", "any_vegetable"],
+      ["nuts", "seeds"],
+      ["lentils", "nuts"]
+    ],
+    "iron_absorption_enhancers": [
+      ["iron_rich_food", "vitamin_C_source"],
+      ["spinach", "citrus"],
+      ["lentils", "tomatoes"]
+    ],
+    "anti_inflammatory": [
+      ["salmon", "leafy_greens"],
+      ["turmeric", "black_pepper"],
+      ["berries", "nuts"]
+    ]
+  },
+  "seasonal_availability": {
+    "spring": ["asparagus", "peas", "spinach", "strawberries"],
+    "summer": ["tomatoes", "zucchini", "berries", "corn", "peaches"],
+    "fall": ["sweet_potato", "apples", "pumpkin", "brussels_sprouts"],
+    "winter": ["citrus", "root_vegetables", "kale", "pomegranate"]
+  },
+  "sustainability_scores": {
+    "plant_proteins": {
+      "score": 9,
+      "carbon_footprint": "low",
+      "water_usage": "low"
+    },
+    "fish": {
+      "score": 7,
+      "carbon_footprint": "medium",
+      "water_usage": "medium"
+    },
+    "poultry": {
+      "score": 5,
+      "carbon_footprint": "medium",
+      "water_usage": "medium"
+    },
+    "red_meat": {
+      "score": 3,
+      "carbon_footprint": "high",
+      "water_usage": "high"
+    }
+  }
+}

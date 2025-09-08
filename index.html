@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Recipe & Nutrition Tracker</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="css/styles.css" rel="stylesheet">
+    
+    <!-- ECharts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-utensils"></i> Smart Recipe Tracker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showPage('dashboard')">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('recipes')">
+                            <i class="fas fa-search me-1"></i>Discover Recipes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('nutrition')">
+                            <i class="fas fa-chart-pie me-1"></i>Nutrition Tracker
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('meal-planner')">
+                            <i class="fas fa-calendar-alt me-1"></i>Meal Planner
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('shopping')">
+                            <i class="fas fa-shopping-cart me-1"></i>Shopping List
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle user-profile" href="#" role="button" data-bs-toggle="dropdown">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="User" class="user-avatar">
+                            <span id="userDisplayName">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="showPage('profile')"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showPage('settings')"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page-content">
+                <div class="page-header">
+                    <h1 class="page-title">Welcome Back!</h1>
+                    <p class="page-subtitle">Track your nutrition, discover new recipes, and reach your health goals</p>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="row mb-4">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-number" id="todayCalories">1,250</div>
+                            <div class="stat-label">Calories Today</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-number" id="recipesTracked">47</div>
+                            <div class="stat-label">Recipes Tried</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-number" id="weekStreak">12</div>
+                            <div class="stat-label">Day Streak</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-number" id="healthScore">87%</div>
+                            <div class="stat-label">Health Score</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Recent Activity -->
+                <div class="row">
+                    <div class="col-lg-8 mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Nutrition Overview</h5>
+                                <select class="form-select w-auto" id="nutritionPeriod">
+                                    <option value="today">Today</option>
+                                    <option value="week" selected>This Week</option>
+                                    <option value="month">This Month</option>
+                                </select>
+                            </div>
+                            <div class="card-body">
+                                <div id="nutritionChart" class="chart-container" style="height: 300px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Quick Actions</h5>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <button class="btn btn-primary mb-3" onclick="showPage('recipes')">
+                                    <i class="fas fa-search me-2"></i>Find New Recipes
+                                </button>
+                                <button class="btn btn-success mb-3" onclick="logQuickMeal()">
+                                    <i class="fas fa-plus-circle me-2"></i>Log Quick Meal
+                                </button>
+                                <button class="btn btn-outline-primary mb-3" onclick="generateMealPlan()">
+                                    <i class="fas fa-magic me-2"></i>Generate Meal Plan
+                                </button>
+                                <button class="btn btn-outline-primary" onclick="showPage('shopping')">
+                                    <i class="fas fa-shopping-cart me-2"></i>Update Shopping List
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Recipes -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Recent Recipes</h5>
+                                <a href="#" onclick="showPage('recipes')" class="btn btn-sm btn-outline-primary">View All</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="recentRecipesContainer">
+                                    <!-- Recent recipes will be loaded here -->
+                                    <div class="col-12 text-center py-4">
+                                        <div class="loading-spinner"></div>
+                                        <p class="text-muted mt-2">Loading your recent recipes...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recipe Discovery Page -->
+            <div id="recipesPage" class="page-content" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Discover Recipes</h1>
+                    <p class="page-subtitle">Find delicious recipes tailored to your preferences and dietary needs</p>
+                </div>
+
+                <!-- Search and Filters -->
+                <div class="search-container">
+                    <div class="position-relative">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control search-input" id="recipeSearch" placeholder="Search for recipes, ingredients, or cuisines...">
+                    </div>
+                </div>
+
+                <div class="filter-buttons" id="recipeFilters">
+                    <button class="filter-btn active" data-filter="all">All Recipes</button>
+                    <button class="filter-btn" data-filter="vegetarian">Vegetarian</button>
+                    <button class="filter-btn" data-filter="vegan">Vegan</button>
+                    <button class="filter-btn" data-filter="gluten-free">Gluten Free</button>
+                    <button class="filter-btn" data-filter="quick">Quick & Easy</button>
+                    <button class="filter-btn" data-filter="healthy">Healthy</button>
+                </div>
+
+                <!-- Advanced Filters (Collapsible) -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <button class="btn btn-link text-decoration-none p-0 text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+                            <i class="fas fa-filter me-2"></i>Advanced Filters
+                            <i class="fas fa-chevron-down ms-2"></i>
+                        </button>
+                    </div>
+                    <div class="collapse" id="advancedFilters">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Cuisine Type</label>
+                                    <select class="form-select" id="cuisineFilter">
+                                        <option value="">Any Cuisine</option>
+                                        <option value="italian">Italian</option>
+                                        <option value="mexican">Mexican</option>
+                                        <option value="chinese">Chinese</option>
+                                        <option value="indian">Indian</option>
+                                        <option value="mediterranean">Mediterranean</option>
+                                        <option value="american">American</option>
+                                        <option value="french">French</option>
+                                        <option value="thai">Thai</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Max Cooking Time</label>
+                                    <select class="form-select" id="timeFilter">
+                                        <option value="">Any Time</option>
+                                        <option value="15">Under 15 min</option>
+                                        <option value="30">Under 30 min</option>
+                                        <option value="60">Under 1 hour</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Calories (per serving)</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="number" class="form-control" id="minCalories" placeholder="Min">
+                                        <input type="number" class="form-control" id="maxCalories" placeholder="Max">
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Dietary Restrictions</label>
+                                    <select class="form-select" id="dietFilter">
+                                        <option value="">None</option>
+                                        <option value="dairy">Dairy Free</option>
+                                        <option value="gluten">Gluten Free</option>
+                                        <option value="nuts">Nut Free</option>
+                                        <option value="soy">Soy Free</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="applyAdvancedFilters()">
+                                    <i class="fas fa-search me-2"></i>Apply Filters
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                                    <i class="fas fa-times me-2"></i>Clear All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recipe Results -->
+                <div class="row" id="recipeResults">
+                    <!-- Recipe cards will be loaded here -->
+                    <div class="col-12 text-center py-5">
+                        <div class="loading-spinner"></div>
+                        <p class="text-muted mt-3">Discovering amazing recipes for you...</p>
+                    </div>
+                </div>
+
+                <!-- Load More Button -->
+                <div class="text-center mt-4" id="loadMoreContainer" style="display: none;">
+                    <button class="btn btn-outline-primary btn-lg" onclick="loadMoreRecipes()">
+                        <i class="fas fa-chevron-down me-2"></i>Load More Recipes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Nutrition Tracker Page -->
+            <div id="nutritionPage" class="page-content" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Nutrition Tracker</h1>
+                    <p class="page-subtitle">Monitor your daily nutrition and stay on track with your health goals</p>
+                </div>
+
+                <!-- Daily Summary -->
+                <div class="row mb-4">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Today's Nutrition</h5>
+                                <input type="date" class="form-control w-auto" id="nutritionDate" value="">
+                            </div>
+                            <div class="card-body">
+                                <div id="dailyNutritionChart" style="height: 400px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Quick Log</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Search Food</label>
+                                    <input type="text" class="form-control" id="foodSearch" placeholder="Search for food...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Quantity</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="foodQuantity" placeholder="1" value="1">
+                                        <select class="form-select" id="foodUnit">
+                                            <option value="serving">serving</option>
+                                            <option value="cup">cup</option>
+                                            <option value="gram">gram</option>
+                                            <option value="ounce">ounce</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="btn btn-success w-100" onclick="logFood()">
+                                    <i class="fas fa-plus me-2"></i>Log Food
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nutrition Goals -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Daily Goals Progress</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <div class="text-center">
+                                            <div class="position-relative d-inline-block">
+                                                <div id="caloriesProgress" style="width: 100px; height: 100px;"></div>
+                                            </div>
+                                            <h6 class="mt-2">Calories</h6>
+                                            <p class="text-muted mb-0"><span id="caloriesConsumed">1,250</span> / <span id="caloriesGoal">2,000</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="text-center">
+                                            <div class="position-relative d-inline-block">
+                                                <div id="proteinProgress" style="width: 100px; height: 100px;"></div>
+                                            </div>
+                                            <h6 class="mt-2">Protein</h6>
+                                            <p class="text-muted mb-0"><span id="proteinConsumed">98</span>g / <span id="proteinGoal">150</span>g</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="text-center">
+                                            <div class="position-relative d-inline-block">
+                                                <div id="carbsProgress" style="width: 100px; height: 100px;"></div>
+                                            </div>
+                                            <h6 class="mt-2">Carbs</h6>
+                                            <p class="text-muted mb-0"><span id="carbsConsumed">145</span>g / <span id="carbsGoal">200</span>g</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="text-center">
+                                            <div class="position-relative d-inline-block">
+                                                <div id="fatProgress" style="width: 100px; height: 100px;"></div>
+                                            </div>
+                                            <h6 class="mt-2">Fat</h6>
+                                            <p class="text-muted mb-0"><span id="fatConsumed">42</span>g / <span id="fatGoal">70</span>g</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meal Log -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Today's Meals</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="mealLog">
+                                    <!-- Meal entries will be loaded here -->
+                                    <div class="text-center py-4">
+                                        <p class="text-muted">No meals logged today. Start by adding your first meal!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meal Planner Page -->
+            <div id="meal-plannerPage" class="page-content" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Meal Planner</h1>
+                    <p class="page-subtitle">Plan your meals for the week and optimize your nutrition</p>
+                </div>
+
+                <!-- Meal Plan Controls -->
+                <div class="row mb-4">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Weekly Meal Plan</h5>
+                                <div class="d-flex gap-2">
+                                    <input type="week" class="form-control w-auto" id="weekPicker">
+                                    <button class="btn btn-primary" onclick="generateMealPlan()">
+                                        <i class="fas fa-magic me-2"></i>Generate Plan
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="weeklyMealPlan">
+                                    <!-- Weekly meal plan will be loaded here -->
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">Click "Generate Plan" to create your personalized meal plan</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Plan Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Daily Calorie Target</label>
+                                    <input type="number" class="form-control" id="calorieTarget" value="2000" min="1200" max="4000">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Diet Preference</label>
+                                    <select class="form-select" id="dietPreference">
+                                        <option value="">No Preference</option>
+                                        <option value="vegetarian">Vegetarian</option>
+                                        <option value="vegan">Vegan</option>
+                                        <option value="paleo">Paleo</option>
+                                        <option value="keto">Keto</option>
+                                        <option value="mediterranean">Mediterranean</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Cooking Time Preference</label>
+                                    <select class="form-select" id="cookingTimePreference">
+                                        <option value="">No Preference</option>
+                                        <option value="15">Quick (Under 15 min)</option>
+                                        <option value="30">Moderate (Under 30 min)</option>
+                                        <option value="60">Extended (Under 1 hour)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Exclude Ingredients</label>
+                                    <input type="text" class="form-control" id="excludeIngredients" placeholder="e.g., nuts, dairy, gluten">
+                                </div>
+                                <button class="btn btn-success w-100" onclick="saveMealPlanSettings()">
+                                    <i class="fas fa-save me-2"></i>Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meal Plan Analytics -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Weekly Nutrition Summary</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="weeklyNutritionChart" style="height: 300px;">
+                                    <div class="text-center py-4">
+                                        <p class="text-muted">Generate a meal plan to see nutrition analytics</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shopping List Page -->
+            <div id="shoppingPage" class="page-content" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title">Smart Shopping List</h1>
+                    <p class="page-subtitle">Organize your grocery shopping with intelligent suggestions</p>
+                </div>
+
+                <!-- Shopping List Content -->
+                <div class="row">
+                    <div class="col-lg-8 mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Shopping List</h5>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="generateShoppingList()">
+                                        <i class="fas fa-magic me-1"></i>Auto-Generate
+                                    </button>
+                                    <button class="btn btn-sm btn-success" onclick="clearCompletedItems()">
+                                        <i class="fas fa-check me-1"></i>Clear Completed
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="shoppingListContainer">
+                                    <!-- Shopping list items will be loaded here -->
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">Your shopping list is empty. Add items manually or auto-generate from your meal plan.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Add Items</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Item Name</label>
+                                    <input type="text" class="form-control" id="newItemName" placeholder="e.g., Bananas">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Quantity</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="newItemQuantity" placeholder="2">
+                                        <input type="text" class="form-control" id="newItemUnit" placeholder="lbs">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="itemCategory">
+                                        <option value="produce">Produce</option>
+                                        <option value="dairy">Dairy</option>
+                                        <option value="meat">Meat & Seafood</option>
+                                        <option value="pantry">Pantry</option>
+                                        <option value="frozen">Frozen</option>
+                                        <option value="bakery">Bakery</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary w-100 mb-3" onclick="addShoppingItem()">
+                                    <i class="fas fa-plus me-2"></i>Add Item
+                                </button>
+                                
+                                <!-- Shopping Summary -->
+                                <div class="mt-4 pt-3 border-top">
+                                    <h6>Shopping Summary</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Total Items:</span>
+                                        <span id="totalItems">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Completed:</span>
+                                        <span id="completedItems">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Remaining:</span>
+                                        <span id="remainingItems">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Recipe Detail Modal -->
+    <div class="modal fade" id="recipeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="recipeModalTitle">Recipe Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="recipeModalBody">
+                    <!-- Recipe details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="addToMealPlan()">
+                        <i class="fas fa-calendar-plus me-2"></i>Add to Meal Plan
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveRecipe()">
+                        <i class="fas fa-heart me-2"></i>Save Recipe
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Meal Log Modal -->
+    <div class="modal fade" id="quickMealModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Log Quick Meal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Meal Type</label>
+                        <select class="form-select" id="quickMealType">
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                            <option value="snack">Snack</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control" id="quickMealDescription" placeholder="e.g., Grilled chicken salad">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Calories</label>
+                            <input type="number" class="form-control" id="quickMealCalories" placeholder="400">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Protein (g)</label>
+                            <input type="number" class="form-control" id="quickMealProtein" placeholder="25">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveQuickMeal()">
+                        <i class="fas fa-save me-2"></i>Log Meal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-spinner" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Configuration Management (Load First) -->
+    <script src="js/config-manager.js"></script>
+    
+    <!-- Firebase and API Integration -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/spoonacular-api.js"></script>
+    
+    <!-- Main Application -->
+    <script src="js/app.js"></script>
+</body>
+</html>

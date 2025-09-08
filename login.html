@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Recipe Tracker - Login</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="css/auth-styles.css" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header text-center mb-4">
+                <i class="fas fa-utensils auth-icon"></i>
+                <h2 class="auth-title">Smart Recipe Tracker</h2>
+                <p class="auth-subtitle">Welcome back! Sign in to continue your culinary journey.</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="passwordToggle"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">
+                        Remember me
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-btn w-100 mb-3" id="loginBtn">
+                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </button>
+            </form>
+
+            <!-- Google Sign In -->
+            <div class="text-center mb-3">
+                <div class="divider">
+                    <span>or</span>
+                </div>
+            </div>
+
+            <button class="btn btn-google w-100 mb-3" onclick="signInWithGoogle()">
+                <i class="fab fa-google me-2"></i>Continue with Google
+            </button>
+
+            <!-- Auth Links -->
+            <div class="auth-links text-center">
+                <p class="mb-2">
+                    <a href="#" onclick="showForgotPassword()" class="auth-link">Forgot your password?</a>
+                </p>
+                <p class="mb-0">
+                    Don't have an account? 
+                    <a href="#" onclick="showSignUp()" class="auth-link">Sign up here</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Sign Up Form (Hidden by default) -->
+        <div class="auth-card" id="signupCard" style="display: none;">
+            <div class="auth-header text-center mb-4">
+                <i class="fas fa-utensils auth-icon"></i>
+                <h2 class="auth-title">Create Account</h2>
+                <p class="auth-subtitle">Join us and start tracking your nutrition today!</p>
+            </div>
+
+            <form id="signupForm" class="auth-form">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName" placeholder="First name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" placeholder="Last name" required>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="signupEmail" class="form-label">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" class="form-control" id="signupEmail" placeholder="Enter your email" required>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="signupPassword" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="signupPassword" placeholder="Create a password" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="toggleSignupPassword()">
+                            <i class="fas fa-eye" id="signupPasswordToggle"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">Password must be at least 6 characters long</div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" required>
+                    </div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                    <label class="form-check-label" for="agreeTerms">
+                        I agree to the <a href="#" class="auth-link">Terms of Service</a> and <a href="#" class="auth-link">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-btn w-100 mb-3" id="signupBtn">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </button>
+            </form>
+
+            <!-- Google Sign Up -->
+            <div class="text-center mb-3">
+                <div class="divider">
+                    <span>or</span>
+                </div>
+            </div>
+
+            <button class="btn btn-google w-100 mb-3" onclick="signInWithGoogle()">
+                <i class="fab fa-google me-2"></i>Sign up with Google
+            </button>
+
+            <div class="auth-links text-center">
+                <p class="mb-0">
+                    Already have an account? 
+                    <a href="#" onclick="showLogin()" class="auth-link">Sign in here</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Forgot Password Form (Hidden by default) -->
+        <div class="auth-card" id="forgotCard" style="display: none;">
+            <div class="auth-header text-center mb-4">
+                <i class="fas fa-key auth-icon"></i>
+                <h2 class="auth-title">Reset Password</h2>
+                <p class="auth-subtitle">Enter your email to receive a password reset link.</p>
+            </div>
+
+            <form id="forgotForm" class="auth-form">
+                <div class="form-group mb-3">
+                    <label for="resetEmail" class="form-label">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" class="form-control" id="resetEmail" placeholder="Enter your email" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-btn w-100 mb-3" id="resetBtn">
+                    <i class="fas fa-paper-plane me-2"></i>Send Reset Link
+                </button>
+            </form>
+
+            <div class="auth-links text-center">
+                <p class="mb-0">
+                    Remember your password? 
+                    <a href="#" onclick="showLogin()" class="auth-link">Back to sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Configuration Management (Load First) -->
+    <script src="js/config-manager.js"></script>
+    
+    <!-- Firebase Configuration and Authentication -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

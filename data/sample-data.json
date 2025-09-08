@@ -1,0 +1,480 @@
+{
+  "users": [
+    {
+      "id": "user_001",
+      "profile": {
+        "name": "Sarah Johnson",
+        "age": 28,
+        "gender": "female",
+        "height": 165,
+        "weight": 65,
+        "activity_level": "moderate",
+        "goals": ["weight_loss", "muscle_gain"],
+        "dietary_restrictions": ["vegetarian"],
+        "allergies": ["nuts"],
+        "created_at": "2024-01-15T10:30:00Z"
+      },
+      "preferences": {
+        "max_calories": 1800,
+        "min_protein": 100,
+        "max_cooking_time": 45,
+        "cuisine_preferences": ["mediterranean", "asian", "healthy"],
+        "budget": 120,
+        "family_size": 2,
+        "meal_prep_days": ["sunday"],
+        "skill_level": "intermediate"
+      },
+      "nutrition_logs": [
+        {
+          "date": "2024-12-01",
+          "meals": [
+            {
+              "meal_type": "breakfast",
+              "food": "overnight_oats",
+              "portion": 1,
+              "calories": 350,
+              "protein": 20,
+              "carbs": 48,
+              "fat": 10,
+              "fiber": 12,
+              "timestamp": "2024-12-01T08:00:00Z"
+            },
+            {
+              "meal_type": "lunch",
+              "food": "quinoa_bowl",
+              "portion": 1,
+              "calories": 420,
+              "protein": 18,
+              "carbs": 65,
+              "fat": 12,
+              "fiber": 12,
+              "timestamp": "2024-12-01T12:30:00Z"
+            },
+            {
+              "meal_type": "dinner",
+              "food": "tofu_stir_fry",
+              "portion": 1,
+              "calories": 320,
+              "protein": 18,
+              "carbs": 28,
+              "fat": 16,
+              "fiber": 8,
+              "timestamp": "2024-12-01T19:00:00Z"
+            }
+          ],
+          "daily_totals": {
+            "calories": 1090,
+            "protein": 56,
+            "carbs": 141,
+            "fat": 38,
+            "fiber": 32
+          }
+        }
+      ],
+      "health_metrics": [
+        {
+          "date": "2024-12-01",
+          "weight": 65.2,
+          "energy_level": 8,
+          "sleep_hours": 7.5,
+          "exercise_minutes": 45,
+          "mood": "good",
+          "notes": "Felt energetic after morning workout"
+        },
+        {
+          "date": "2024-11-30",
+          "weight": 65.5,
+          "energy_level": 7,
+          "sleep_hours": 6.8,
+          "exercise_minutes": 30,
+          "mood": "okay",
+          "notes": "Tired from late work"
+        }
+      ],
+      "recipe_ratings": [
+        {
+          "recipe_id": 1,
+          "rating": 4.5,
+          "notes": "Loved the Mediterranean flavors!",
+          "date": "2024-11-28"
+        },
+        {
+          "recipe_id": 3,
+          "rating": 4.0,
+          "notes": "Easy to make and filling",
+          "date": "2024-11-25"
+        }
+      ]
+    },
+    {
+      "id": "user_002",
+      "profile": {
+        "name": "Mike Chen",
+        "age": 32,
+        "gender": "male",
+        "height": 180,
+        "weight": 78,
+        "activity_level": "high",
+        "goals": ["muscle_gain", "performance"],
+        "dietary_restrictions": [],
+        "allergies": [],
+        "created_at": "2024-02-20T14:15:00Z"
+      },
+      "preferences": {
+        "max_calories": 2800,
+        "min_protein": 150,
+        "max_cooking_time": 60,
+        "cuisine_preferences": ["american", "asian", "mexican"],
+        "budget": 200,
+        "family_size": 1,
+        "meal_prep_days": ["sunday", "wednesday"],
+        "skill_level": "advanced"
+      },
+      "nutrition_logs": [
+        {
+          "date": "2024-12-01",
+          "meals": [
+            {
+              "meal_type": "breakfast",
+              "food": "protein_pancakes",
+              "portion": 1,
+              "calories": 320,
+              "protein": 24,
+              "carbs": 42,
+              "fat": 8,
+              "fiber": 6,
+              "timestamp": "2024-12-01T07:30:00Z"
+            },
+            {
+              "meal_type": "lunch",
+              "food": "chicken_rice_bowl",
+              "portion": 1.5,
+              "calories": 698,
+              "protein": 48,
+              "carbs": 63,
+              "fat": 27,
+              "fiber": 6,
+              "timestamp": "2024-12-01T13:00:00Z"
+            },
+            {
+              "meal_type": "dinner",
+              "food": "salmon_vegetables",
+              "portion": 1,
+              "calories": 385,
+              "protein": 35,
+              "carbs": 8,
+              "fat": 24,
+              "fiber": 3,
+              "timestamp": "2024-12-01T19:30:00Z"
+            },
+            {
+              "meal_type": "snack",
+              "food": "protein_shake",
+              "portion": 1,
+              "calories": 250,
+              "protein": 30,
+              "carbs": 15,
+              "fat": 5,
+              "fiber": 2,
+              "timestamp": "2024-12-01T16:00:00Z"
+            }
+          ],
+          "daily_totals": {
+            "calories": 1653,
+            "protein": 137,
+            "carbs": 128,
+            "fat": 64,
+            "fiber": 17
+          }
+        }
+      ],
+      "health_metrics": [
+        {
+          "date": "2024-12-01",
+          "weight": 78.1,
+          "energy_level": 9,
+          "sleep_hours": 8.0,
+          "exercise_minutes": 90,
+          "mood": "excellent",
+          "notes": "Great strength training session"
+        }
+      ],
+      "recipe_ratings": [
+        {
+          "recipe_id": 2,
+          "rating": 5.0,
+          "notes": "Perfect post-workout meal",
+          "date": "2024-11-30"
+        },
+        {
+          "recipe_id": 10,
+          "rating": 4.8,
+          "notes": "Great for meal prep",
+          "date": "2024-11-26"
+        }
+      ]
+    }
+  ],
+  "meal_plans": [
+    {
+      "id": "plan_001",
+      "user_id": "user_001",
+      "week_of": "2024-12-02",
+      "plan": {
+        "monday": {
+          "breakfast": {
+            "recipe_id": 4,
+            "name": "Protein Overnight Oats",
+            "calories": 350,
+            "prep_time": 10
+          },
+          "lunch": {
+            "recipe_id": 1,
+            "name": "Mediterranean Quinoa Bowl",
+            "calories": 420,
+            "prep_time": 35
+          },
+          "dinner": {
+            "recipe_id": 3,
+            "name": "Asian Tofu Stir-Fry",
+            "calories": 320,
+            "prep_time": 20
+          }
+        },
+        "tuesday": {
+          "breakfast": {
+            "recipe_id": 6,
+            "name": "Avocado Toast Supreme",
+            "calories": 385,
+            "prep_time": 15
+          },
+          "lunch": {
+            "recipe_id": 8,
+            "name": "Tuna White Bean Wrap",
+            "calories": 340,
+            "prep_time": 10
+          },
+          "dinner": {
+            "recipe_id": 7,
+            "name": "Lentil Vegetable Soup",
+            "calories": 285,
+            "prep_time": 45
+          }
+        }
+      },
+      "weekly_totals": {
+        "calories": 15400,
+        "protein": 920,
+        "cost": 95.50,
+        "prep_time": 420
+      },
+      "optimization_score": 0.87,
+      "created_at": "2024-11-30T10:00:00Z"
+    }
+  ],
+  "shopping_lists": [
+    {
+      "id": "shop_001",
+      "user_id": "user_001",
+      "meal_plan_id": "plan_001",
+      "week_of": "2024-12-02",
+      "items": {
+        "produce": [
+          {
+            "name": "Spinach",
+            "quantity": "2 bags",
+            "estimated_cost": 5.00,
+            "category": "leafy_greens"
+          },
+          {
+            "name": "Bell Peppers",
+            "quantity": "4 pieces",
+            "estimated_cost": 6.00,
+            "category": "vegetables"
+          },
+          {
+            "name": "Avocados",
+            "quantity": "3 pieces",
+            "estimated_cost": 4.50,
+            "category": "healthy_fats"
+          },
+          {
+            "name": "Tomatoes",
+            "quantity": "2 lbs",
+            "estimated_cost": 4.00,
+            "category": "vegetables"
+          }
+        ],
+        "proteins": [
+          {
+            "name": "Extra Firm Tofu",
+            "quantity": "2 blocks",
+            "estimated_cost": 6.00,
+            "category": "plant_protein"
+          },
+          {
+            "name": "Canned Tuna",
+            "quantity": "4 cans",
+            "estimated_cost": 8.00,
+            "category": "seafood"
+          },
+          {
+            "name": "Eggs",
+            "quantity": "1 dozen",
+            "estimated_cost": 3.50,
+            "category": "complete_protein"
+          }
+        ],
+        "pantry": [
+          {
+            "name": "Quinoa",
+            "quantity": "2 lbs",
+            "estimated_cost": 8.00,
+            "category": "whole_grains"
+          },
+          {
+            "name": "Green Lentils",
+            "quantity": "1 lb",
+            "estimated_cost": 3.00,
+            "category": "legumes"
+          },
+          {
+            "name": "Olive Oil",
+            "quantity": "1 bottle",
+            "estimated_cost": 12.00,
+            "category": "cooking_oils"
+          }
+        ],
+        "dairy": [
+          {
+            "name": "Greek Yogurt",
+            "quantity": "2 containers",
+            "estimated_cost": 6.00,
+            "category": "dairy_protein"
+          },
+          {
+            "name": "Feta Cheese",
+            "quantity": "1 container",
+            "estimated_cost": 5.50,
+            "category": "cheese"
+          }
+        ]
+      },
+      "total_cost": 71.50,
+      "optimized_route": [
+        "produce",
+        "dairy", 
+        "proteins",
+        "pantry"
+      ],
+      "estimated_shopping_time": 35,
+      "created_at": "2024-11-30T15:30:00Z"
+    }
+  ],
+  "ai_insights": [
+    {
+      "user_id": "user_001",
+      "date": "2024-12-01",
+      "type": "nutrition_analysis",
+      "insights": [
+        {
+          "category": "protein",
+          "message": "You're consistently meeting 85% of your protein goals. Consider adding a mid-afternoon protein snack.",
+          "confidence": 0.92,
+          "recommendation": "Add 1 serving of Greek yogurt or nuts as afternoon snack"
+        },
+        {
+          "category": "fiber",
+          "message": "Excellent fiber intake from vegetables and whole grains. This supports digestive health.",
+          "confidence": 0.89,
+          "recommendation": "Continue current vegetable consumption patterns"
+        }
+      ],
+      "predictions": {
+        "weight_change_30_days": -1.2,
+        "energy_level_trend": "improving",
+        "sleep_quality_correlation": 0.78
+      }
+    }
+  ],
+  "recipe_clusters": [
+    {
+      "cluster_id": 1,
+      "name": "High Protein Mediterranean",
+      "characteristics": {
+        "avg_calories": 395,
+        "avg_protein": 28,
+        "avg_cooking_time": 30,
+        "cuisine": "mediterranean"
+      },
+      "recipes": [1, 2, 5],
+      "user_affinity": {
+        "user_001": 0.85,
+        "user_002": 0.72
+      }
+    },
+    {
+      "cluster_id": 2,
+      "name": "Quick Plant-Based",
+      "characteristics": {
+        "avg_calories": 320,
+        "avg_protein": 16,
+        "avg_cooking_time": 20,
+        "dietary": "vegetarian"
+      },
+      "recipes": [3, 7, 9],
+      "user_affinity": {
+        "user_001": 0.92,
+        "user_002": 0.45
+      }
+    },
+    {
+      "cluster_id": 3,
+      "name": "Protein Breakfast",
+      "characteristics": {
+        "avg_calories": 352,
+        "avg_protein": 20,
+        "avg_cooking_time": 13,
+        "meal_type": "breakfast"
+      },
+      "recipes": [4, 6, 10],
+      "user_affinity": {
+        "user_001": 0.78,
+        "user_002": 0.88
+      }
+    }
+  ],
+  "algorithm_performance": {
+    "kmeans_clustering": {
+      "last_updated": "2024-12-01T12:00:00Z",
+      "accuracy": 0.87,
+      "cluster_count": 5,
+      "convergence_iterations": 23
+    },
+    "collaborative_filtering": {
+      "last_updated": "2024-12-01T12:00:00Z",
+      "accuracy": 0.82,
+      "user_similarity_threshold": 0.75,
+      "recommendation_count": 156
+    },
+    "nutrition_regression": {
+      "last_updated": "2024-12-01T12:00:00Z",
+      "r_squared": 0.79,
+      "mean_absolute_error": 23.4,
+      "feature_importance": {
+        "protein": 0.34,
+        "fiber": 0.28,
+        "calories": 0.22,
+        "cooking_time": 0.16
+      }
+    }
+  },
+  "system_metrics": {
+    "total_users": 1247,
+    "total_recipes": 2834,
+    "total_meal_plans": 5642,
+    "avg_user_engagement": 0.73,
+    "recipe_rating_avg": 4.2,
+    "last_model_training": "2024-11-30T02:00:00Z"
+  }
+}
