@@ -1,618 +1,824 @@
-/**
- * AI-Powered Meal Planner with Spoonacular API Integration
- * Uses optimization algorithms to create balanced weekly meal plans
- */
-
+// AI-Powered Meal Planner
 class MealPlanner {
     constructor() {
+        this.mealPlans = [];
+        this.preferences = {
+            dailyCalories: 2000,
+            budget: 50,
+            familySize: 2,
+            dietaryRestrictions: [],
+            cuisinePreferences: [],
+            cookingTime: 45,
+            mealPrepDays: 3
+        };
         this.currentPlan = null;
         this.planningConstraints = {};
-        this.optimizationResults = {};
-        this.isGenerating = false;
+        
+        this.initializePlanner();
     }
 
-    // Generate optimized meal plan using Spoonacular API
-    async generateOptimizedMealPlan(constraints = {}) {
-        if (this.isGenerating) {
-            console.log('Meal plan generation already in progress');
-            return null;
+    initializePlanner() {
+        this.loadUserPreferences();
+        this.loadExistingPlans();
+        this.setupEventListeners();
+        console.log('Meal Planner initialized');
+    }
+
+    async loadUserPreferences() {
+        try {
+            if (window.firebaseConfig?.helper) {
+                const saved = await window.firebaseConfig.helper.getUserData('mealPlanPreferences');
+                if (saved) {
+                    this.preferences = { ...this.preferences, ...saved };
+                    this.updatePreferencesUI();
+                }
+            }
+        } catch (error) {
+            console.error('Error loading meal plan preferences:', error);
+        }
+    }
+
+    async loadExistingPlans() {
+        try {
+            if (window.firebaseConfig?.helper) {
+                this.mealPlans = await window.firebaseConfig.helper.getUserDocuments('mealPlans') || [];
+                this.displayExistingPlans();
+            }
+        } catch (error) {
+            console.error('Error loading existing meal plans:', error);
+        }
+    }
+
+    setupEventListeners() {
+        // Plan generation button
+        const generateBtn = document.getElementById('generatePlanBtn');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', () => this.generateMealPlan());
         }
 
-        this.isGenerating = true;
-        this.planningConstraints = {
-            targetCalories: constraints.targetCalories || 2000,
-            diet: constraints.diet || '',
-            exclude: constraints.exclude || '',
-            timeFrame: 'week',
-            ...constraints
-        };
+        // Preference updates
+        const preferenceInputs = document.querySelectorAll('.preference-input');
+        preferenceInputs.forEach(input => {
+            input.addEventListener('change', () => this.updatePreferences());
+        });
 
-        try {
-            console.log('Generating meal plan with constraints:', this.planningConstraints);
-            
-            // Use Spoonacular to generate meal plan
-            const mealPlan = await this.generateWithSpoonacular();
-            
-            if (mealPlan) {
-                // Optimize and validate the plan
-                this.currentPlan = await this.optimizePlan(mealPlan);
-                
-                // Calculate optimization metrics
-                this.optimizationResults = this.calculateOptimizationMetrics(this.currentPlan);
-                
-                // Save to Firebase
-                if (window.firebaseManager && currentUser) {
-                    await firebaseManager.saveMealPlan({
-                        plan: this.currentPlan,
-                        constraints: this.planningConstraints,
-                        metrics: this.optimizationResults
-                    });
-                }
-                
-                return {
-                    plan: this.currentPlan,
-                    metrics: this.optimizationResults,
-                    recommendations: this.generatePlanRecommendations()
-                };
+        // Meal plan actions
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('regenerate-day')) {
+                const day = e.target.dataset.day;
+                this.regenerateDay(day);
             }
             
-            throw new Error('Failed to generate meal plan');
+            if (e.target.classList.contains('save-plan')) {
+                this.saveMealPlan();
+            }
             
+            if (e.target.classList.contains('export-plan')) {
+                this.exportMealPlan();
+            }
+        });
+    }
+
+    updatePreferencesUI() {
+        // Update form fields with saved preferences
+        Object.entries(this.preferences).forEach(([key, value]) => {
+            const input = document.getElementById(key);
+            if (input) {
+                if (input.type === 'checkbox') {
+                    input.checked = value;
+                } else if (Array.isArray(value)) {
+                    input.value = value.join(',');
+                } else {
+                    input.value = value;
+                }
+            }
+        });
+    }
+
+    async updatePreferences() {
+        try {
+            // Collect preferences from form
+            const newPreferences = {
+                dailyCalories: parseInt(document.getElementById('dailyCalories')?.value) || 2000,
+                budget: parseFloat(document.getElementById('budget')?.value) || 50,
+                familySize: parseInt(document.getElementById('familySize')?.value) || 2,
+                cookingTime: parseInt(document.getElementById('cookingTime')?.value) || 45,
+                mealPrepDays: parseInt(document.getElementById('mealPrepDays')?.value) || 3
+            };
+
+            // Get dietary restrictions
+            const dietCheckboxes = document.querySelectorAll('input[name="dietaryRestrictions"]:checked');
+            newPreferences.dietaryRestrictions = Array.from(dietCheckboxes).map(cb => cb.value);
+
+            // Get cuisine preferences
+            const cuisineCheckboxes = document.querySelectorAll('input[name="cuisinePreferences"]:checked');
+            newPreferences.cuisinePreferences = Array.from(cuisineCheckboxes).map(cb => cb.value);
+
+            this.preferences = { ...this.preferences, ...newPreferences };
+
+            // Save to Firebase
+            if (window.firebaseConfig?.helper) {
+                await window.firebaseConfig.helper.saveUserData('mealPlanPreferences', this.preferences);
+            }
+
+            this.showSuccess('Preferences updated successfully!');
+        } catch (error) {
+            console.error('Error updating preferences:', error);
+            this.showError('Failed to update preferences');
+        }
+    }
+
+    async generateMealPlan() {
+        try {
+            this.showLoading('Generating your optimized meal plan...');
+
+            // Get planning parameters
+            const planType = document.getElementById('planType')?.value || 'week';
+            const startDate = document.getElementById('startDate')?.value || new Date().toISOString().split('T')[0];
+
+            this.planningConstraints = {
+                ...this.preferences,
+                planType,
+                startDate,
+                includeBreakfast: document.getElementById('includeBreakfast')?.checked || true,
+                includeLunch: document.getElementById('includeLunch')?.checked || true,
+                includeDinner: document.getElementById('includeDinner')?.checked || true,
+                includeSnacks: document.getElementById('includeSnacks')?.checked || false
+            };
+
+            let mealPlan;
+
+            // Try Spoonacular API first
+            if (window.spoonacularAPI) {
+                try {
+                    mealPlan = await this.generateWithSpoonacular();
+                } catch (error) {
+                    console.warn('Spoonacular API failed, using AI fallback');
+                    mealPlan = await this.generateWithAI();
+                }
+            } else {
+                mealPlan = await this.generateWithAI();
+            }
+
+            this.currentPlan = mealPlan;
+            this.displayMealPlan(mealPlan);
+            this.calculatePlanMetrics(mealPlan);
+            
+            this.hideLoading();
+            this.showSuccess('Meal plan generated successfully!');
+
         } catch (error) {
             console.error('Error generating meal plan:', error);
-            
-            // Fallback to basic plan generation
-            return this.generateFallbackPlan();
-        } finally {
-            this.isGenerating = false;
+            this.hideLoading();
+            this.showError('Failed to generate meal plan');
         }
     }
 
     async generateWithSpoonacular() {
-        try {
-            if (!window.spoonacularAPI) {
-                throw new Error('Spoonacular API not available');
-            }
-            
-            const mealPlan = await spoonacularAPI.generateMealPlan({
-                timeFrame: 'week',
-                targetCalories: this.planningConstraints.targetCalories,
-                diet: this.planningConstraints.diet || undefined,
-                exclude: this.planningConstraints.exclude || undefined
-            });
-            
-            return mealPlan;
-        } catch (error) {
-            console.error('Error with Spoonacular meal plan generation:', error);
-            throw error;
-        }
+        const timeFrame = this.planningConstraints.planType === 'week' ? 'week' : 'day';
+        const targetCalories = this.planningConstraints.dailyCalories;
+        const diet = this.planningConstraints.dietaryRestrictions.join(',');
+
+        const spoonacularPlan = await window.spoonacularAPI.generateMealPlan(
+            timeFrame, 
+            targetCalories, 
+            diet
+        );
+
+        return this.convertSpoonacularPlan(spoonacularPlan);
     }
 
-    async optimizePlan(rawPlan) {
-        if (!rawPlan || !rawPlan.week) {
-            throw new Error('Invalid meal plan structure');
+    convertSpoonacularPlan(spoonacularPlan) {
+        // Convert Spoonacular format to our format
+        const days = spoonacularPlan.week ? Object.keys(spoonacularPlan.week) : ['today'];
+        
+        return {
+            id: Date.now(),
+            type: this.planningConstraints.planType,
+            startDate: this.planningConstraints.startDate,
+            days: days.map(day => ({
+                day: day,
+                date: this.calculateDate(day),
+                meals: this.createDayMeals(spoonacularPlan.week ? spoonacularPlan.week[day] : spoonacularPlan)
+            })),
+            metrics: {
+                totalCalories: spoonacularPlan.nutrients?.calories || 0,
+                totalCost: this.estimatePlanCost(),
+                averageTime: this.estimateAverageTime(),
+                varietyScore: this.calculateVarietyScore()
+            },
+            createdAt: new Date().toISOString()
+        };
+    }
+
+    async generateWithAI() {
+        // Use genetic algorithm for optimization
+        if (window.recipeAI) {
+            const aiResult = window.recipeAI.generateOptimalMealPlan(this.planningConstraints, 7);
+            return this.convertAIPlan(aiResult);
         }
 
-        const optimizedPlan = {
-            week: {},
-            totalNutrition: {
-                calories: 0,
-                protein: 0,
-                carbs: 0,
-                fat: 0,
-                fiber: 0
-            },
-            totalCost: 0,
-            variety: 0
+        // Fallback to rule-based generation
+        return this.generateRuleBasedPlan();
+    }
+
+    convertAIPlan(aiResult) {
+        return {
+            id: Date.now(),
+            type: this.planningConstraints.planType,
+            startDate: this.planningConstraints.startDate,
+            days: aiResult.mealPlan.map((day, index) => ({
+                day: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index],
+                date: this.calculateDate(index),
+                meals: day.meals.map(meal => ({
+                    type: meal.type,
+                    recipe: meal.recipe,
+                    calories: meal.recipe.calories,
+                    protein: meal.recipe.protein,
+                    carbs: meal.recipe.carbs,
+                    fat: meal.recipe.fat,
+                    cookingTime: meal.recipe.cookingTime,
+                    cost: meal.recipe.estimatedCost
+                }))
+            })),
+            metrics: aiResult.metrics,
+            fitness: aiResult.fitness,
+            processingTime: aiResult.processingTime,
+            createdAt: new Date().toISOString()
+        };
+    }
+
+    generateRuleBasedPlan() {
+        const days = this.planningConstraints.planType === 'week' ? 7 : 
+                    this.planningConstraints.planType === 'month' ? 30 : 1;
+
+        const plan = {
+            id: Date.now(),
+            type: this.planningConstraints.planType,
+            startDate: this.planningConstraints.startDate,
+            days: [],
+            metrics: {},
+            createdAt: new Date().toISOString()
         };
 
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        for (let i = 0; i < days; i++) {
+            const dayPlan = this.generateDayPlan(i);
+            plan.days.push(dayPlan);
+        }
+
+        plan.metrics = this.calculatePlanMetrics(plan);
+        return plan;
+    }
+
+    generateDayPlan(dayIndex) {
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const day = {
+            day: dayNames[dayIndex % 7],
+            date: this.calculateDate(dayIndex),
+            meals: []
+        };
+
+        const targetCalories = this.planningConstraints.dailyCalories;
+        const calorieDistribution = {
+            breakfast: 0.25,
+            lunch: 0.35,
+            dinner: 0.35,
+            snacks: 0.05
+        };
+
+        if (this.planningConstraints.includeBreakfast) {
+            day.meals.push(this.generateMeal('breakfast', targetCalories * calorieDistribution.breakfast));
+        }
+
+        if (this.planningConstraints.includeLunch) {
+            day.meals.push(this.generateMeal('lunch', targetCalories * calorieDistribution.lunch));
+        }
+
+        if (this.planningConstraints.includeDinner) {
+            day.meals.push(this.generateMeal('dinner', targetCalories * calorieDistribution.dinner));
+        }
+
+        if (this.planningConstraints.includeSnacks) {
+            day.meals.push(this.generateMeal('snack', targetCalories * calorieDistribution.snacks));
+        }
+
+        return day;
+    }
+
+    generateMeal(mealType, targetCalories) {
+        // Get suitable recipes for this meal type
+        let suitableRecipes = [];
         
-        for (const day of days) {
-            if (rawPlan.week[day]) {
-                optimizedPlan.week[day] = await this.optimizeDayMeals(rawPlan.week[day], day);
-                
-                // Accumulate totals
-                if (optimizedPlan.week[day].nutrition) {
-                    optimizedPlan.totalNutrition.calories += optimizedPlan.week[day].nutrition.calories || 0;
-                    optimizedPlan.totalNutrition.protein += optimizedPlan.week[day].nutrition.protein || 0;
-                    optimizedPlan.totalNutrition.carbs += optimizedPlan.week[day].nutrition.carbs || 0;
-                    optimizedPlan.totalNutrition.fat += optimizedPlan.week[day].nutrition.fat || 0;
-                    optimizedPlan.totalNutrition.fiber += optimizedPlan.week[day].nutrition.fiber || 0;
+        if (window.recipeAI) {
+            suitableRecipes = window.recipeAI.recipes.filter(recipe => {
+                // Filter by meal type appropriateness
+                if (mealType === 'breakfast' && !recipe.tags.includes('breakfast')) {
+                    return recipe.cookingTime <= 20 && recipe.calories <= 400;
                 }
-            }
+                if (mealType === 'lunch' && recipe.calories > targetCalories * 1.5) {
+                    return false;
+                }
+                if (mealType === 'dinner' && recipe.calories < targetCalories * 0.6) {
+                    return false;
+                }
+                if (mealType === 'snack' && recipe.calories > 200) {
+                    return false;
+                }
+
+                // Check dietary restrictions
+                if (this.planningConstraints.dietaryRestrictions.includes('vegetarian')) {
+                    return !recipe.ingredients.some(ing => 
+                        ['chicken', 'beef', 'fish', 'salmon', 'turkey'].includes(ing)
+                    );
+                }
+
+                return true;
+            });
         }
 
-        // Calculate variety score
-        optimizedPlan.variety = this.calculateVarietyScore(optimizedPlan.week);
-        
-        return optimizedPlan;
+        // Fallback recipes if no AI recipes available
+        if (suitableRecipes.length === 0) {
+            suitableRecipes = this.getFallbackRecipes(mealType);
+        }
+
+        // Select best recipe for this meal
+        const selectedRecipe = this.selectBestRecipe(suitableRecipes, targetCalories);
+
+        return {
+            type: mealType,
+            recipe: selectedRecipe,
+            calories: selectedRecipe.calories,
+            protein: selectedRecipe.protein,
+            carbs: selectedRecipe.carbs,
+            fat: selectedRecipe.fat,
+            cookingTime: selectedRecipe.cookingTime,
+            cost: selectedRecipe.estimatedCost || 8
+        };
     }
 
-    async optimizeDayMeals(dayData, dayName) {
-        const optimizedDay = {
-            meals: [],
-            nutrition: {
-                calories: 0,
-                protein: 0,
-                carbs: 0,
-                fat: 0,
-                fiber: 0
-            },
-            cost: 0
+    getFallbackRecipes(mealType) {
+        const fallbackRecipes = {
+            breakfast: [
+                { id: 'b1', title: 'Greek Yogurt Parfait', calories: 250, protein: 20, carbs: 25, fat: 5, cookingTime: 5, estimatedCost: 4 },
+                { id: 'b2', title: 'Scrambled Eggs with Toast', calories: 320, protein: 18, carbs: 22, fat: 18, cookingTime: 10, estimatedCost: 3 },
+                { id: 'b3', title: 'Protein Smoothie', calories: 280, protein: 25, carbs: 20, fat: 8, cookingTime: 5, estimatedCost: 5 }
+            ],
+            lunch: [
+                { id: 'l1', title: 'Quinoa Buddha Bowl', calories: 380, protein: 16, carbs: 52, fat: 12, cookingTime: 25, estimatedCost: 8 },
+                { id: 'l2', title: 'Turkey Wrap', calories: 350, protein: 25, carbs: 28, fat: 16, cookingTime: 10, estimatedCost: 6 },
+                { id: 'l3', title: 'Chicken Salad', calories: 320, protein: 28, carbs: 15, fat: 18, cookingTime: 15, estimatedCost: 9 }
+            ],
+            dinner: [
+                { id: 'd1', title: 'Grilled Salmon with Vegetables', calories: 420, protein: 35, carbs: 20, fat: 24, cookingTime: 30, estimatedCost: 16 },
+                { id: 'd2', title: 'Chicken Stir-fry', calories: 380, protein: 32, carbs: 25, fat: 18, cookingTime: 25, estimatedCost: 12 },
+                { id: 'd3', title: 'Lentil Curry', calories: 310, protein: 18, carbs: 45, fat: 6, cookingTime: 40, estimatedCost: 5 }
+            ],
+            snack: [
+                { id: 's1', title: 'Mixed Nuts', calories: 160, protein: 6, carbs: 6, fat: 14, cookingTime: 0, estimatedCost: 2 },
+                { id: 's2', title: 'Apple with Peanut Butter', calories: 190, protein: 8, carbs: 20, fat: 8, cookingTime: 2, estimatedCost: 2 },
+                { id: 's3', title: 'Protein Bar', calories: 200, protein: 15, carbs: 20, fat: 8, cookingTime: 0, estimatedCost: 3 }
+            ]
         };
 
-        if (dayData.meals && Array.isArray(dayData.meals)) {
-            for (const meal of dayData.meals) {
-                try {
-                    // Get detailed nutrition information for each meal
-                    const mealDetails = await this.getMealDetails(meal);
-                    if (mealDetails) {
-                        optimizedDay.meals.push(mealDetails);
-                        
-                        // Add to daily totals
-                        if (mealDetails.nutrition) {
-                            optimizedDay.nutrition.calories += mealDetails.nutrition.calories || 0;
-                            optimizedDay.nutrition.protein += mealDetails.nutrition.protein || 0;
-                            optimizedDay.nutrition.carbs += mealDetails.nutrition.carbs || 0;
-                            optimizedDay.nutrition.fat += mealDetails.nutrition.fat || 0;
-                            optimizedDay.nutrition.fiber += mealDetails.nutrition.fiber || 0;
-                        }
-                        
-                        optimizedDay.cost += mealDetails.estimatedCost || 0;
-                    }
-                } catch (error) {
-                    console.error(`Error optimizing meal for ${dayName}:`, error);
-                    // Add basic meal info even if detailed lookup fails
-                    optimizedDay.meals.push({
-                        id: meal.id,
-                        title: meal.title,
-                        readyInMinutes: meal.readyInMinutes || 30,
-                        servings: meal.servings || 2,
-                        sourceUrl: meal.sourceUrl,
-                        image: meal.image,
-                        estimatedCost: 8.00,
-                        nutrition: {
-                            calories: 400,
-                            protein: 20,
-                            carbs: 40,
-                            fat: 15,
-                            fiber: 5
+        return fallbackRecipes[mealType] || fallbackRecipes.lunch;
+    }
+
+    selectBestRecipe(recipes, targetCalories) {
+        if (recipes.length === 0) {
+            return this.getFallbackRecipes('lunch')[0];
+        }
+
+        // Score recipes based on how well they match target calories and preferences
+        const scoredRecipes = recipes.map(recipe => {
+            let score = 0;
+
+            // Calorie proximity (closer to target = higher score)
+            const calorieDiff = Math.abs(recipe.calories - targetCalories);
+            score += Math.max(0, 100 - calorieDiff);
+
+            // Cooking time preference
+            if (recipe.cookingTime <= this.planningConstraints.cookingTime) {
+                score += 50;
+            }
+
+            // Cost preference
+            if (recipe.estimatedCost <= this.planningConstraints.budget / 3) {
+                score += 30;
+            }
+
+            // Protein content
+            if (recipe.protein >= 15) {
+                score += 25;
+            }
+
+            return { ...recipe, score };
+        });
+
+        // Return highest scoring recipe
+        scoredRecipes.sort((a, b) => b.score - a.score);
+        return scoredRecipes[0];
+    }
+
+    calculateDate(dayIndex) {
+        const startDate = new Date(this.planningConstraints.startDate);
+        const targetDate = new Date(startDate);
+        targetDate.setDate(startDate.getDate() + dayIndex);
+        return targetDate.toISOString().split('T')[0];
+    }
+
+    createDayMeals(dayData) {
+        // Convert day data to our meal format
+        const meals = [];
+        
+        if (dayData.breakfast) meals.push({ type: 'breakfast', ...dayData.breakfast });
+        if (dayData.lunch) meals.push({ type: 'lunch', ...dayData.lunch });
+        if (dayData.dinner) meals.push({ type: 'dinner', ...dayData.dinner });
+        
+        return meals;
+    }
+
+    displayMealPlan(plan) {
+        const container = document.getElementById('mealPlanResults');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="meal-plan-header mb-4">
+                <h4>Your ${plan.type} Meal Plan</h4>
+                <p class="text-muted">Generated on ${new Date(plan.createdAt).toLocaleDateString()}</p>
+                <div class="plan-actions">
+                    <button class="btn btn-primary save-plan">Save Plan</button>
+                    <button class="btn btn-outline-secondary export-plan">Export</button>
+                    <button class="btn btn-outline-info" onclick="mealPlanner.showPlanAnalytics()">View Analytics</button>
+                </div>
+            </div>
+            
+            <div class="meal-plan-grid">
+                ${plan.days.map(day => this.renderDayPlan(day)).join('')}
+            </div>
+            
+            <div class="plan-summary mt-4">
+                ${this.renderPlanSummary(plan)}
+            </div>
+        `;
+    }
+
+    renderDayPlan(day) {
+        return `
+            <div class="day-plan card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">${day.day}</h5>
+                    <small class="text-muted">${new Date(day.date).toLocaleDateString()}</small>
+                    <button class="btn btn-sm btn-outline-primary regenerate-day" data-day="${day.day}">
+                        <i class="fas fa-sync-alt me-1"></i>Regenerate
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="meals-list">
+                        ${day.meals.map(meal => this.renderMeal(meal)).join('')}
+                    </div>
+                    <div class="day-totals mt-3 pt-3 border-top">
+                        <div class="row text-center">
+                            <div class="col">
+                                <strong>${this.calculateDayCalories(day.meals)}</strong>
+                                <br><small class="text-muted">Calories</small>
+                            </div>
+                            <div class="col">
+                                <strong>${this.calculateDayProtein(day.meals)}g</strong>
+                                <br><small class="text-muted">Protein</small>
+                            </div>
+                            <div class="col">
+                                <strong>$${this.calculateDayCost(day.meals)}</strong>
+                                <br><small class="text-muted">Est. Cost</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderMeal(meal) {
+        return `
+            <div class="meal-item d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div>
+                    <div class="fw-semibold text-capitalize">${meal.type}</div>
+                    <div class="recipe-name">${meal.recipe.title}</div>
+                    <small class="text-muted">
+                        ${meal.cookingTime} min • ${meal.calories} cal • ${meal.protein}g protein
+                    </small>
+                </div>
+                <div class="meal-actions">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="mealPlanner.viewRecipe('${meal.recipe.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="mealPlanner.replaceMeal('${meal.type}', '${meal.recipe.id}')">
+                        <i class="fas fa-exchange-alt"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    renderPlanSummary(plan) {
+        return `
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <h3 class="stat-number">${plan.metrics.totalCalories || 'N/A'}</h3>
+                        <div class="stat-label">Total Calories</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <h3 class="stat-number">$${plan.metrics.totalCost || 'N/A'}</h3>
+                        <div class="stat-label">Est. Total Cost</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <h3 class="stat-number">${plan.metrics.averageTime || 'N/A'} min</h3>
+                        <div class="stat-label">Avg. Cook Time</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <h3 class="stat-number">${Math.round((plan.metrics.varietyScore || 0) * 100)}%</h3>
+                        <div class="stat-label">Variety Score</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    calculateDayCalories(meals) {
+        return Math.round(meals.reduce((total, meal) => total + (meal.calories || 0), 0));
+    }
+
+    calculateDayProtein(meals) {
+        return Math.round(meals.reduce((total, meal) => total + (meal.protein || 0), 0));
+    }
+
+    calculateDayCost(meals) {
+        return meals.reduce((total, meal) => total + (meal.cost || 0), 0).toFixed(2);
+    }
+
+    calculatePlanMetrics(plan) {
+        const totalCalories = plan.days.reduce((total, day) => 
+            total + this.calculateDayCalories(day.meals), 0);
+        const totalCost = plan.days.reduce((total, day) => 
+            total + parseFloat(this.calculateDayCost(day.meals)), 0);
+        const totalTime = plan.days.reduce((total, day) => 
+            total + day.meals.reduce((dayTime, meal) => dayTime + (meal.cookingTime || 0), 0), 0);
+
+        const allRecipes = plan.days.flatMap(day => day.meals.map(meal => meal.recipe.id || meal.recipe.title));
+        const uniqueRecipes = new Set(allRecipes);
+        const varietyScore = uniqueRecipes.size / allRecipes.length;
+
+        plan.metrics = {
+            totalCalories,
+            totalCost: totalCost.toFixed(2),
+            averageTime: Math.round(totalTime / plan.days.length),
+            varietyScore,
+            uniqueRecipes: uniqueRecipes.size,
+            totalRecipes: allRecipes.length
+        };
+
+        return plan.metrics;
+    }
+
+    async regenerateDay(dayName) {
+        if (!this.currentPlan) return;
+
+        try {
+            this.showLoading(`Regenerating ${dayName}...`);
+
+            const dayIndex = this.currentPlan.days.findIndex(d => d.day === dayName);
+            if (dayIndex !== -1) {
+                const newDayPlan = this.generateDayPlan(dayIndex);
+                this.currentPlan.days[dayIndex] = newDayPlan;
+                
+                this.calculatePlanMetrics(this.currentPlan);
+                this.displayMealPlan(this.currentPlan);
+            }
+
+            this.hideLoading();
+            this.showSuccess(`${dayName} regenerated successfully!`);
+        } catch (error) {
+            this.hideLoading();
+            this.showError(`Failed to regenerate ${dayName}`);
+        }
+    }
+
+    async saveMealPlan() {
+        if (!this.currentPlan) return;
+
+        try {
+            // Save to Firebase
+            if (window.firebaseConfig?.helper) {
+                const planId = await window.firebaseConfig.helper.addDocument('savedMealPlans', this.currentPlan);
+                this.currentPlan.id = planId;
+            }
+
+            // Add to local collection
+            this.mealPlans.push(this.currentPlan);
+            this.displayExistingPlans();
+
+            this.showSuccess('Meal plan saved successfully!');
+        } catch (error) {
+            console.error('Error saving meal plan:', error);
+            this.showError('Failed to save meal plan');
+        }
+    }
+
+    exportMealPlan() {
+        if (!this.currentPlan) return;
+
+        const exportData = {
+            ...this.currentPlan,
+            exportedAt: new Date().toISOString(),
+            preferences: this.preferences
+        };
+
+        // Create shopping list
+        const shoppingList = this.generateShoppingList(this.currentPlan);
+        exportData.shoppingList = shoppingList;
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `meal-plan-${this.currentPlan.startDate}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        this.showSuccess('Meal plan exported successfully!');
+    }
+
+    generateShoppingList(plan) {
+        const ingredients = new Map();
+
+        plan.days.forEach(day => {
+            day.meals.forEach(meal => {
+                if (meal.recipe.ingredients) {
+                    meal.recipe.ingredients.forEach(ingredient => {
+                        if (ingredients.has(ingredient)) {
+                            ingredients.set(ingredient, ingredients.get(ingredient) + 1);
+                        } else {
+                            ingredients.set(ingredient, 1);
                         }
                     });
                 }
-            }
-        }
-
-        return optimizedDay;
-    }
-
-    async getMealDetails(meal) {
-        try {
-            if (meal.id && window.spoonacularAPI) {
-                // Get detailed recipe information
-                const details = await spoonacularAPI.getRecipeDetails(meal.id);
-                if (details) {
-                    return {
-                        id: details.id,
-                        title: details.title,
-                        readyInMinutes: details.readyInMinutes,
-                        servings: details.servings,
-                        sourceUrl: details.sourceUrl,
-                        image: details.image,
-                        nutrition: details.nutrition,
-                        ingredients: details.ingredients,
-                        estimatedCost: this.estimateMealCost(details.ingredients)
-                    };
-                }
-            }
-            
-            // Fallback to basic meal info
-            return {
-                id: meal.id,
-                title: meal.title,
-                readyInMinutes: meal.readyInMinutes || 30,
-                servings: meal.servings || 2,
-                sourceUrl: meal.sourceUrl,
-                image: meal.image,
-                estimatedCost: 8.00,
-                nutrition: this.estimateNutrition(meal.title)
-            };
-        } catch (error) {
-            console.error('Error getting meal details:', error);
-            return null;
-        }
-    }
-
-    estimateMealCost(ingredients) {
-        if (!ingredients || !Array.isArray(ingredients)) {
-            return 8.00; // Default cost
-        }
-        
-        // Simple cost estimation based on ingredient count and types
-        let totalCost = 0;
-        
-        ingredients.forEach(ingredient => {
-            // Basic cost estimates by ingredient type
-            const name = ingredient.name.toLowerCase();
-            if (name.includes('meat') || name.includes('fish') || name.includes('chicken')) {
-                totalCost += 4.00;
-            } else if (name.includes('cheese') || name.includes('dairy')) {
-                totalCost += 2.00;
-            } else if (name.includes('vegetable') || name.includes('fruit')) {
-                totalCost += 1.50;
-            } else {
-                totalCost += 1.00;
-            }
-        });
-        
-        return Math.max(3.00, Math.min(15.00, totalCost)); // Cap between $3-15
-    }
-
-    estimateNutrition(mealTitle) {
-        const title = mealTitle.toLowerCase();
-        
-        // Basic nutrition estimation based on meal type keywords
-        let nutrition = {
-            calories: 400,
-            protein: 20,
-            carbs: 40,
-            fat: 15,
-            fiber: 5
-        };
-        
-        // Adjust based on meal type
-        if (title.includes('salad')) {
-            nutrition = { calories: 250, protein: 15, carbs: 20, fat: 12, fiber: 8 };
-        } else if (title.includes('soup')) {
-            nutrition = { calories: 200, protein: 12, carbs: 25, fat: 6, fiber: 6 };
-        } else if (title.includes('pasta')) {
-            nutrition = { calories: 500, protein: 18, carbs: 70, fat: 15, fiber: 4 };
-        } else if (title.includes('chicken')) {
-            nutrition = { calories: 450, protein: 35, carbs: 20, fat: 18, fiber: 3 };
-        } else if (title.includes('fish') || title.includes('salmon')) {
-            nutrition = { calories: 380, protein: 30, carbs: 15, fat: 20, fiber: 2 };
-        } else if (title.includes('vegetarian') || title.includes('veggie')) {
-            nutrition = { calories: 350, protein: 15, carbs: 50, fat: 10, fiber: 12 };
-        }
-        
-        return nutrition;
-    }
-
-    calculateVarietyScore(weekPlan) {
-        const usedIngredients = new Set();
-        const cuisineTypes = new Set();
-        let varietyScore = 0;
-        
-        Object.values(weekPlan).forEach(day => {
-            if (day.meals) {
-                day.meals.forEach(meal => {
-                    // Track unique ingredients
-                    if (meal.ingredients) {
-                        meal.ingredients.forEach(ing => {
-                            usedIngredients.add(ing.name);
-                        });
-                    }
-                    
-                    // Track cuisine variety (estimated from meal title)
-                    const cuisine = this.estimateCuisine(meal.title);
-                    if (cuisine) {
-                        cuisineTypes.add(cuisine);
-                    }
-                });
-            }
-        });
-        
-        // Calculate variety score
-        varietyScore += usedIngredients.size * 2; // Points for ingredient variety
-        varietyScore += cuisineTypes.size * 10; // Points for cuisine variety
-        
-        return Math.min(100, varietyScore);
-    }
-
-    estimateCuisine(mealTitle) {
-        const title = mealTitle.toLowerCase();
-        
-        if (title.includes('pasta') || title.includes('italian')) return 'italian';
-        if (title.includes('curry') || title.includes('indian')) return 'indian';
-        if (title.includes('stir') || title.includes('asian') || title.includes('chinese')) return 'asian';
-        if (title.includes('taco') || title.includes('mexican')) return 'mexican';
-        if (title.includes('greek') || title.includes('mediterranean')) return 'mediterranean';
-        if (title.includes('french')) return 'french';
-        
-        return 'american'; // Default
-    }
-
-    generateFallbackPlan() {
-        console.log('Generating fallback meal plan');
-        
-        const fallbackMeals = [
-            { id: 'fb1', title: 'Grilled Chicken Salad', readyInMinutes: 20, cost: 8 },
-            { id: 'fb2', title: 'Salmon with Vegetables', readyInMinutes: 25, cost: 12 },
-            { id: 'fb3', title: 'Quinoa Buddha Bowl', readyInMinutes: 30, cost: 7 },
-            { id: 'fb4', title: 'Turkey and Avocado Wrap', readyInMinutes: 15, cost: 6 },
-            { id: 'fb5', title: 'Vegetable Stir Fry', readyInMinutes: 20, cost: 5 },
-            { id: 'fb6', title: 'Greek Yogurt Parfait', readyInMinutes: 5, cost: 4 },
-            { id: 'fb7', title: 'Lentil Soup', readyInMinutes: 35, cost: 5 }
-        ];
-        
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        const fallbackPlan = { week: {} };
-        
-        days.forEach((day, index) => {
-            const mealsForDay = [
-                fallbackMeals[index % fallbackMeals.length],
-                fallbackMeals[(index + 1) % fallbackMeals.length],
-                fallbackMeals[(index + 2) % fallbackMeals.length]
-            ];
-            
-            fallbackPlan.week[day] = {
-                meals: mealsForDay.map(meal => ({
-                    ...meal,
-                    nutrition: this.estimateNutrition(meal.title),
-                    estimatedCost: meal.cost
-                }))
-            };
-        });
-        
-        this.currentPlan = fallbackPlan;
-        this.optimizationResults = {
-            nutritionScore: 75,
-            costEfficiency: 80,
-            varietyScore: 65,
-            overallScore: 73
-        };
-        
-        return {
-            plan: this.currentPlan,
-            metrics: this.optimizationResults,
-            recommendations: [
-                { type: 'info', message: 'Basic meal plan generated. Consider upgrading for AI optimization.' }
-            ]
-        };
-    }
-
-    calculateOptimizationMetrics(plan) {
-        if (!plan || !plan.week) {
-            return { overallScore: 0, nutritionScore: 0, costEfficiency: 0, varietyScore: 0 };
-        }
-
-        const targetWeeklyCalories = this.planningConstraints.targetCalories * 7;
-        const actualCalories = plan.totalNutrition?.calories || 0;
-        
-        // Nutrition score (0-100)
-        const calorieAccuracy = Math.max(0, 100 - Math.abs(actualCalories - targetWeeklyCalories) / targetWeeklyCalories * 100);
-        const proteinAdequacy = Math.min(100, (plan.totalNutrition?.protein || 0) / (150 * 7) * 100);
-        const fiberAdequacy = Math.min(100, (plan.totalNutrition?.fiber || 0) / (25 * 7) * 100);
-        const nutritionScore = (calorieAccuracy + proteinAdequacy + fiberAdequacy) / 3;
-        
-        // Cost efficiency (0-100)
-        const avgMealCost = plan.totalCost / 21; // 3 meals * 7 days
-        const costEfficiency = Math.max(0, 100 - (avgMealCost - 6) * 10); // $6 target per meal
-        
-        // Variety score
-        const varietyScore = plan.variety || 0;
-        
-        // Overall score
-        const overallScore = (nutritionScore * 0.4 + costEfficiency * 0.3 + varietyScore * 0.3);
-        
-        return {
-            overallScore: Math.round(overallScore),
-            nutritionScore: Math.round(nutritionScore),
-            costEfficiency: Math.round(costEfficiency),
-            varietyScore: Math.round(varietyScore),
-            totalCost: plan.totalCost || 0,
-            totalCalories: actualCalories,
-            mealsCount: this.countMeals(plan.week)
-        };
-    }
-
-    countMeals(weekPlan) {
-        let count = 0;
-        Object.values(weekPlan).forEach(day => {
-            if (day.meals) {
-                count += day.meals.length;
-            }
-        });
-        return count;
-    }
-
-    generatePlanRecommendations() {
-        const metrics = this.optimizationResults;
-        const recommendations = [];
-        
-        if (metrics.nutritionScore < 70) {
-            recommendations.push({
-                type: 'nutrition',
-                message: 'Consider adding more protein-rich foods and vegetables for better nutrition balance.',
-                priority: 'high'
             });
-        }
-        
-        if (metrics.costEfficiency < 60) {
-            recommendations.push({
-                type: 'budget',
-                message: 'Look for budget-friendly alternatives or consider meal prep to reduce costs.',
-                priority: 'medium'
-            });
-        }
-        
-        if (metrics.varietyScore < 50) {
-            recommendations.push({
-                type: 'variety',
-                message: 'Try incorporating more diverse cuisines and ingredients for better variety.',
-                priority: 'medium'
-            });
-        }
-        
-        if (metrics.overallScore > 85) {
-            recommendations.push({
-                type: 'positive',
-                message: 'Excellent meal plan! Great balance of nutrition, cost, and variety.',
-                priority: 'info'
-            });
-        }
-        
-        return recommendations;
+        });
+
+        return Array.from(ingredients.entries()).map(([ingredient, quantity]) => ({
+            item: ingredient,
+            quantity: quantity,
+            category: this.categorizeIngredient(ingredient),
+            estimated: true
+        }));
     }
 
-    // Generate shopping list from current meal plan
-    async generateShoppingList() {
-        if (!this.currentPlan || !this.currentPlan.week) {
-            return [];
-        }
-
-        const shoppingList = {};
-        const categories = ['produce', 'proteins', 'dairy', 'pantry', 'other'];
-        
-        // Initialize categories
-        categories.forEach(category => {
-            shoppingList[category] = [];
-        });
-
-        // Collect all ingredients from the meal plan
-        Object.values(this.currentPlan.week).forEach(day => {
-            if (day.meals) {
-                day.meals.forEach(meal => {
-                    if (meal.ingredients && Array.isArray(meal.ingredients)) {
-                        meal.ingredients.forEach(ingredient => {
-                            const category = this.categorizeIngredient(ingredient.name);
-                            const existingItem = shoppingList[category].find(item => 
-                                item.name.toLowerCase() === ingredient.name.toLowerCase()
-                            );
-                            
-                            if (existingItem) {
-                                existingItem.quantity += ingredient.amount || 1;
-                            } else {
-                                shoppingList[category].push({
-                                    name: ingredient.name,
-                                    quantity: ingredient.amount || 1,
-                                    unit: ingredient.unit || 'item',
-                                    estimatedCost: this.estimateIngredientCost(ingredient.name)
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-        });
-
-        // Remove empty categories and calculate totals
-        const finalList = {};
-        let totalCost = 0;
-        
-        categories.forEach(category => {
-            if (shoppingList[category].length > 0) {
-                finalList[category] = shoppingList[category];
-                totalCost += shoppingList[category].reduce((sum, item) => sum + item.estimatedCost, 0);
-            }
-        });
-
-        // Save to Firebase if available
-        if (window.firebaseManager && currentUser) {
-            try {
-                await firebaseManager.saveShoppingList({
-                    items: finalList,
-                    totalCost: totalCost,
-                    mealPlanId: 'current',
-                    weekOf: new Date().toISOString().split('T')[0]
-                });
-            } catch (error) {
-                console.error('Error saving shopping list:', error);
-            }
-        }
-
-        return {
-            items: finalList,
-            totalCost: totalCost,
-            estimatedTime: this.estimateShoppingTime(finalList)
+    categorizeIngredient(ingredient) {
+        const categories = {
+            'meat': ['chicken', 'beef', 'turkey', 'fish', 'salmon'],
+            'dairy': ['milk', 'cheese', 'yogurt', 'butter'],
+            'vegetables': ['broccoli', 'spinach', 'tomatoes', 'onion', 'garlic'],
+            'fruits': ['apple', 'banana', 'berries', 'lemon'],
+            'grains': ['rice', 'quinoa', 'bread', 'pasta'],
+            'pantry': ['oil', 'spices', 'herbs', 'salt', 'pepper']
         };
-    }
 
-    categorizeIngredient(ingredientName) {
-        const name = ingredientName.toLowerCase();
-        
-        // Produce
-        if (name.includes('lettuce') || name.includes('spinach') || name.includes('tomato') || 
-            name.includes('onion') || name.includes('pepper') || name.includes('carrot') ||
-            name.includes('broccoli') || name.includes('cucumber') || name.includes('fruit')) {
-            return 'produce';
+        for (const [category, items] of Object.entries(categories)) {
+            if (items.some(item => ingredient.toLowerCase().includes(item))) {
+                return category;
+            }
         }
-        
-        // Proteins
-        if (name.includes('chicken') || name.includes('beef') || name.includes('fish') || 
-            name.includes('salmon') || name.includes('egg') || name.includes('tofu') ||
-            name.includes('beans') || name.includes('lentil')) {
-            return 'proteins';
-        }
-        
-        // Dairy
-        if (name.includes('milk') || name.includes('cheese') || name.includes('yogurt') || 
-            name.includes('butter') || name.includes('cream')) {
-            return 'dairy';
-        }
-        
-        // Pantry items
-        if (name.includes('rice') || name.includes('pasta') || name.includes('bread') || 
-            name.includes('flour') || name.includes('oil') || name.includes('spice') ||
-            name.includes('salt') || name.includes('sugar') || name.includes('vinegar')) {
-            return 'pantry';
-        }
-        
+
         return 'other';
     }
 
-    estimateIngredientCost(ingredientName) {
-        const name = ingredientName.toLowerCase();
-        
-        // Cost estimates based on ingredient type
-        if (name.includes('meat') || name.includes('fish') || name.includes('salmon')) {
-            return Math.random() * 5 + 5; // $5-10
-        } else if (name.includes('cheese') || name.includes('dairy')) {
-            return Math.random() * 3 + 2; // $2-5
-        } else if (name.includes('vegetable') || name.includes('fruit')) {
-            return Math.random() * 2 + 1; // $1-3
-        } else {
-            return Math.random() * 2 + 0.5; // $0.50-2.50
+    displayExistingPlans() {
+        const container = document.getElementById('existingPlans');
+        if (!container || this.mealPlans.length === 0) return;
+
+        container.innerHTML = `
+            <h5>Saved Meal Plans</h5>
+            <div class="saved-plans-list">
+                ${this.mealPlans.slice(-5).map(plan => `
+                    <div class="saved-plan-item d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <div class="fw-semibold">${plan.type} Plan - ${plan.startDate}</div>
+                            <small class="text-muted">
+                                ${plan.days.length} days • ${plan.metrics.totalCalories} cal • $${plan.metrics.totalCost}
+                            </small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="mealPlanner.loadPlan('${plan.id}')">
+                                Load
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    loadPlan(planId) {
+        const plan = this.mealPlans.find(p => p.id === planId);
+        if (plan) {
+            this.currentPlan = plan;
+            this.displayMealPlan(plan);
+            this.showSuccess('Meal plan loaded successfully!');
         }
     }
 
-    estimateShoppingTime(shoppingList) {
-        const itemCount = Object.values(shoppingList).reduce((total, category) => 
-            total + category.length, 0
-        );
-        
-        // Base time + time per item + category switching time
-        return Math.max(15, 10 + itemCount * 2 + Object.keys(shoppingList).length * 3);
+    showPlanAnalytics() {
+        if (!this.currentPlan) return;
+
+        // Create analytics modal or display
+        if (window.chartManager) {
+            // Create nutrition breakdown chart
+            const nutritionData = this.analyzePlanNutrition();
+            window.chartManager.createNutritionChart('planNutritionChart', nutritionData);
+
+            // Create cost analysis chart
+            const costData = this.analyzePlanCosts();
+            window.chartManager.createMealPlanChart('planCostChart', costData);
+        }
     }
 
-    // Get current meal plan summary
-    getMealPlanSummary() {
+    analyzePlanNutrition() {
+        const totals = this.currentPlan.days.reduce((acc, day) => {
+            day.meals.forEach(meal => {
+                acc.protein += meal.protein || 0;
+                acc.carbs += meal.carbs || 0;
+                acc.fat += meal.fat || 0;
+            });
+            return acc;
+        }, { protein: 0, carbs: 0, fat: 0 });
+
         return {
-            plan: this.currentPlan,
-            metrics: this.optimizationResults,
-            constraints: this.planningConstraints,
-            recommendations: this.generatePlanRecommendations(),
-            isValid: this.currentPlan !== null
+            title: 'Plan Nutrition Breakdown',
+            protein: Math.round(totals.protein),
+            carbs: Math.round(totals.carbs),
+            fat: Math.round(totals.fat)
         };
     }
 
-    // Load existing meal plan
-    async loadMealPlan() {
-        try {
-            if (window.firebaseManager && currentUser) {
-                const existingPlan = await firebaseManager.getCurrentMealPlan();
-                if (existingPlan) {
-                    this.currentPlan = existingPlan.plan;
-                    this.planningConstraints = existingPlan.constraints || {};
-                    this.optimizationResults = existingPlan.metrics || {};
-                    return true;
-                }
-            }
-        } catch (error) {
-            console.error('Error loading meal plan:', error);
+    analyzePlanCosts() {
+        return {
+            optimized: [
+                { name: 'Current Plan', value: [85, this.currentPlan.metrics.totalCost, 150] }
+            ],
+            alternatives: []
+        };
+    }
+
+    showLoading(message) {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <div>${message}</div>
+                </div>
+            `;
         }
-        return false;
+    }
+
+    hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+
+    showSuccess(message) {
+        this.showAlert(message, 'success');
+    }
+
+    showError(message) {
+        this.showAlert(message, 'danger');
+    }
+
+    showAlert(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
     }
 }
 
@@ -622,4 +828,4 @@ const mealPlanner = new MealPlanner();
 // Export for global use
 window.mealPlanner = mealPlanner;
 
-console.log('Meal planner loaded');
+console.log('Meal Planner loaded successfully');

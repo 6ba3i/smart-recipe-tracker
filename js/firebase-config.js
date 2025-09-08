@@ -1,269 +1,249 @@
-// Firebase Configuration with Environment Variable Support
-// This file handles Firebase initialization using the configuration manager
+// Firebase Configuration with actual API keys
+const firebaseConfig = {
+    apiKey: "AIzaSyC_fnBK0vfP3U6SKhFWJP98CC6e2sjjIJs",
+    authDomain: "nut-track.firebaseapp.com",
+    projectId: "nut-track",
+    storageBucket: "nut-track.firebasestorage.app",
+    messagingSenderId: "656967210072",
+    appId: "1:656967210072:web:5f17fc3d10e525e08ee62d",
+    measurementId: "G-CVLLBVRBEF"
+};
 
-class FirebaseConfigManager {
-    constructor() {
-        this.isInitialized = false;
-        this.firebaseConfig = null;
-        this.services = null;
-        this.initialize();
+// Initialize Firebase
+let app;
+let db;
+let auth;
+
+try {
+    // Initialize Firebase app
+    app = firebase.initializeApp(firebaseConfig);
+    
+    // Initialize Firebase services
+    db = firebase.firestore();
+    auth = firebase.auth();
+    
+    console.log('Firebase initialized successfully');
+    
+    // Enable offline persistence
+    if (db) {
+        db.enablePersistence({ synchronizeTabs: true })
+            .then(() => {
+                console.log('Firestore offline persistence enabled');
+            })
+            .catch((err) => {
+                if (err.code === 'failed-precondition') {
+                    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time');
+                } else if (err.code === 'unimplemented') {
+                    console.warn('The current browser doesn\'t support offline persistence');
+                }
+            });
     }
-
-    async initialize() {
+    
+    // Set up authentication state listener
+    auth.onAuthStateChanged((user) => {
         try {
-            // Wait for configuration manager to be ready
-            await this.waitForConfigManager();
-            
-            // Get Firebase configuration
-            this.firebaseConfig = window.configManager.getFirebaseConfig();
-            
-            // Validate configuration
-            this.validateConfig();
-            
-            // Initialize Firebase
-            await this.initializeFirebase();
-            
-            console.log('🔥 Firebase initialized successfully');
-            this.isInitialized = true;
-            
+            if (user) {
+                console.log('User authenticated:', user.uid);
+                document.body.style.display = 'block';
+                
+                // Initialize app if on main page
+                if (!window.location.pathname.includes('login.html')) {
+                    // Try to initialize the main app
+                    if (typeof SmartRecipeApp !== 'undefined') {
+                        window.app = new SmartRecipeApp();
+                    } else {
+                        console.log('Waiting for app classes to load...');
+                    }
+                }
+            } else {
+                console.log('User not authenticated');
+                
+                // Don't redirect if already on login page
+                if (!window.location.pathname.includes('login.html')) {
+                    // Sign in anonymously for demo purposes
+                    auth.signInAnonymously()
+                        .then(() => {
+                            console.log('Anonymous authentication successful');
+                        })
+                        .catch((error) => {
+                            console.error('Anonymous authentication failed:', error);
+                            // Redirect to login page if anonymous auth fails
+                            window.location.href = 'login.html';
+                        });
+                }
+            }
         } catch (error) {
-            console.error('❌ Firebase initialization failed:', error);
-            this.handleInitializationError(error);
+            console.error('Error in auth state change handler:', error);
         }
-    }
-
-    async waitForConfigManager() {
-        let attempts = 0;
-        const maxAttempts = 100; // 10 seconds max wait
-        
-        while (!window.configManager && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        if (!window.configManager) {
-            throw new Error('Configuration manager not available');
-        }
-        
-        // Wait for config manager to be initialized
-        await window.configManager.waitForConfig();
-    }
-
-    validateConfig() {
-        if (!this.firebaseConfig) {
-            throw new Error('Firebase configuration not found');
-        }
-
-        const requiredFields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
-        const missingFields = requiredFields.filter(field => 
-            !this.firebaseConfig[field] || 
-            this.firebaseConfig[field].includes('demo-mode') ||
-            this.firebaseConfig[field].includes('your-')
-        );
-
-        if (missingFields.length > 0) {
-            const errorMsg = `Firebase configuration incomplete. Missing or invalid fields: ${missingFields.join(', ')}`;
-            throw new Error(errorMsg);
-        }
-    }
-
-    async initializeFirebase() {
-        // Check if Firebase is already initialized
-        if (firebase.apps.length > 0) {
-            console.log('🔥 Firebase already initialized, using existing app');
-            firebase.app(); // Use existing app
-        } else {
-            // Initialize new Firebase app
-            firebase.initializeApp(this.firebaseConfig);
-            console.log('🔥 Firebase app initialized');
-        }
-
-        // Initialize Firebase services
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // Configure Auth providers
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
-        googleProvider.addScope('profile');
-        googleProvider.addScope('email');
-
-        // Set auth persistence
-        try {
-            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-        } catch (error) {
-            console.warn('⚠️ Could not set auth persistence:', error);
-        }
-
-        // Store services globally
-        this.services = {
-            auth,
-            db,
-            googleProvider,
-            firebase,
-            config: this.firebaseConfig
-        };
-
-        // Export for global access
-        window.firebaseConfig = this.services;
-        
-        console.log('✅ Firebase services configured');
-    }
-
-    handleInitializationError(error) {
-        console.error('Firebase initialization error details:', error);
-        
-        // Show user-friendly error for configuration issues
-        if (error.message.includes('configuration') || error.message.includes('Missing')) {
-            this.showConfigurationError();
-        }
-        
-        // Create a minimal services object for graceful degradation
-        this.services = {
-            auth: null,
-            db: null,
-            googleProvider: null,
-            firebase: null,
-            config: null,
-            error: error.message
-        };
-        
-        window.firebaseConfig = this.services;
-        this.isInitialized = true; // Mark as initialized even with error
-    }
-
-    showConfigurationError() {
-        // Only show error overlay if we're not on the login page and DOM is ready
-        if (typeof window !== 'undefined' && 
-            document.readyState === 'complete' && 
-            !window.location.pathname.includes('login.html')) {
-            
-            const errorOverlay = document.createElement('div');
-            errorOverlay.innerHTML = `
-                <div style="
-                    position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-                    background: rgba(15, 23, 42, 0.95); color: #f8fafc; 
-                    display: flex; align-items: center; justify-content: center;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                    z-index: 10000; backdrop-filter: blur(5px);
-                ">
-                    <div style="text-align: center; max-width: 600px; padding: 2rem; background: #1e293b; border-radius: 1rem; border: 1px solid #475569;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔧</div>
-                        <h2 style="color: #ef4444; margin-bottom: 1rem; font-size: 1.5rem;">Configuration Required</h2>
-                        <p style="margin-bottom: 1rem; line-height: 1.6;">
-                            Firebase configuration is missing or incomplete.<br>
-                            Please set up your API keys to continue.
-                        </p>
-                        <div style="background: #334155; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; text-align: left;">
-                            <strong>Setup Options:</strong><br>
-                            • Copy <code>config.example.js</code> to <code>config.js</code><br>
-                            • Or copy <code>.env.example</code> to <code>.env</code><br>
-                            • Add your Firebase API keys<br>
-                            • Refresh this page
-                        </div>
-                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                            <button onclick="location.reload()" style="
-                                background: #6366f1; color: white; border: none; 
-                                padding: 0.75rem 1.5rem; border-radius: 0.5rem; 
-                                cursor: pointer; font-size: 1rem;
-                            ">Retry</button>
-                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
-                                background: #374151; color: white; border: none; 
-                                padding: 0.75rem 1.5rem; border-radius: 0.5rem; 
-                                cursor: pointer; font-size: 1rem;
-                            ">Continue Anyway</button>
-                        </div>
-                        <p style="font-size: 0.875rem; color: #94a3b8; margin-top: 1rem;">
-                            📖 See README.md for detailed setup instructions
-                        </p>
-                    </div>
+    });
+    
+} catch (error) {
+    console.error('Firebase initialization error:', error);
+    
+    // Show user-friendly error message
+    if (!window.location.pathname.includes('login.html')) {
+        const errorOverlay = document.createElement('div');
+        errorOverlay.innerHTML = `
+            <div style="
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+                background: rgba(15, 23, 42, 0.95); color: #f8fafc; 
+                display: flex; align-items: center; justify-content: center;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                z-index: 10000; backdrop-filter: blur(5px);
+            ">
+                <div style="text-align: center; max-width: 600px; padding: 2rem; background: #1e293b; border-radius: 1rem; border: 1px solid #475569;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔥</div>
+                    <h2 style="color: #ef4444; margin-bottom: 1rem; font-size: 1.5rem;">Firebase Connection Error</h2>
+                    <p style="margin-bottom: 1rem; line-height: 1.6;">
+                        Unable to connect to Firebase services.<br>
+                        Please check your internet connection and try again.
+                    </p>
+                    <button onclick="window.location.reload()" style="
+                        background: #6366f1; color: white; border: none; 
+                        padding: 0.75rem 1.5rem; border-radius: 0.5rem; 
+                        cursor: pointer; font-weight: 600;
+                    ">
+                        Retry Connection
+                    </button>
                 </div>
-            `;
-            document.body.appendChild(errorOverlay);
+            </div>
+        `;
+        document.body.appendChild(errorOverlay);
+    }
+}
+
+// Database helper functions
+const FirebaseHelper = {
+    // Save user data
+    async saveUserData(collection, data) {
+        try {
+            if (!auth.currentUser) {
+                throw new Error('User not authenticated');
+            }
+            
+            const userDoc = db.collection(collection).doc(auth.currentUser.uid);
+            await userDoc.set(data, { merge: true });
+            console.log(`Data saved to ${collection}:`, data);
+            return true;
+        } catch (error) {
+            console.error(`Error saving to ${collection}:`, error);
+            throw error;
+        }
+    },
+    
+    // Get user data
+    async getUserData(collection) {
+        try {
+            if (!auth.currentUser) {
+                throw new Error('User not authenticated');
+            }
+            
+            const userDoc = await db.collection(collection).doc(auth.currentUser.uid).get();
+            if (userDoc.exists) {
+                return userDoc.data();
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.error(`Error getting ${collection} data:`, error);
+            throw error;
+        }
+    },
+    
+    // Add document to collection
+    async addDocument(collection, data) {
+        try {
+            if (!auth.currentUser) {
+                throw new Error('User not authenticated');
+            }
+            
+            const docRef = await db.collection(collection).add({
+                ...data,
+                userId: auth.currentUser.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            console.log(`Document added to ${collection} with ID:`, docRef.id);
+            return docRef.id;
+        } catch (error) {
+            console.error(`Error adding document to ${collection}:`, error);
+            throw error;
+        }
+    },
+    
+    // Get user's documents from collection
+    async getUserDocuments(collection, orderBy = 'createdAt', orderDirection = 'desc') {
+        try {
+            if (!auth.currentUser) {
+                throw new Error('User not authenticated');
+            }
+            
+            const snapshot = await db.collection(collection)
+                .where('userId', '==', auth.currentUser.uid)
+                .orderBy(orderBy, orderDirection)
+                .get();
+            
+            const documents = [];
+            snapshot.forEach(doc => {
+                documents.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            return documents;
+        } catch (error) {
+            console.error(`Error getting documents from ${collection}:`, error);
+            throw error;
+        }
+    },
+    
+    // Update document
+    async updateDocument(collection, docId, data) {
+        try {
+            await db.collection(collection).doc(docId).update({
+                ...data,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            console.log(`Document updated in ${collection}:`, docId);
+            return true;
+        } catch (error) {
+            console.error(`Error updating document in ${collection}:`, error);
+            throw error;
+        }
+    },
+    
+    // Delete document
+    async deleteDocument(collection, docId) {
+        try {
+            await db.collection(collection).doc(docId).delete();
+            console.log(`Document deleted from ${collection}:`, docId);
+            return true;
+        } catch (error) {
+            console.error(`Error deleting document from ${collection}:`, error);
+            throw error;
         }
     }
+};
 
-    // Public methods
-    isReady() {
-        return this.isInitialized;
-    }
+// Export for global use
+window.firebaseConfig = {
+    app,
+    db,
+    auth,
+    helper: FirebaseHelper
+};
 
-    getServices() {
-        return this.services;
-    }
-
-    async waitForInitialization() {
-        while (!this.isInitialized) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        return this.services;
-    }
-}
-
-// Initialize Firebase configuration manager
-let firebaseManager;
-
-function initializeFirebaseManager() {
-    if (typeof window !== 'undefined') {
-        firebaseManager = new FirebaseConfigManager();
-        window.firebaseManager = firebaseManager;
+// Analytics (optional)
+if (firebaseConfig.measurementId) {
+    try {
+        // You can add Google Analytics initialization here if needed
+        console.log('Analytics measurement ID available:', firebaseConfig.measurementId);
+    } catch (error) {
+        console.warn('Analytics initialization failed:', error);
     }
 }
 
-// Start initialization when script loads
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeFirebaseManager);
-} else {
-    initializeFirebaseManager();
-}
-
-// Export for module systems
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = FirebaseConfigManager;
-}
-
-console.log('🔧 Firebase configuration manager loaded');
-
-/*
-SETUP INSTRUCTIONS:
-
-🚀 Quick Setup:
-1. Choose your method:
-   A) Configuration file: Copy config.example.js to config.js
-   B) Environment variables: Copy .env.example to .env
-
-2. Get Firebase configuration:
-   - Go to https://console.firebase.google.com/
-   - Create/select project
-   - Go to Project Settings > General > Your apps
-   - Add web app or view existing config
-   - Copy the configuration values
-
-3. Add configuration:
-   Method A - In config.js:
-   window.AppConfig = {
-       firebase: {
-           apiKey: "your-firebase-api-key",
-           authDomain: "your-project.firebaseapp.com",
-           projectId: "your-project-id",
-           // ... other config values
-       }
-   };
-
-   Method B - In .env:
-   VITE_FIREBASE_API_KEY=your-firebase-api-key
-   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your-project-id
-
-4. Enable Firebase services:
-   - Authentication: Enable Email/Password and Google sign-in
-   - Firestore: Create database in test mode
-
-5. Refresh the page and you're ready!
-
-📖 For detailed instructions, see README.md
-
-🛡️ Security Notes:
-- Never commit config.js or .env files to version control
-- Use different API keys for development and production
-- Monitor your Firebase usage and set up billing alerts
-*/
+console.log('Firebase configuration loaded successfully');

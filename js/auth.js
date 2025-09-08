@@ -1,433 +1,397 @@
-// Authentication Logic for Smart Recipe Tracker
-
+// Authentication Manager
 class AuthManager {
     constructor() {
-        this.auth = null;
-        this.db = null;
-        this.googleProvider = null;
-        this.isInitialized = false;
+        this.currentUser = null;
+        this.authState = 'loading';
+        this.providers = {};
         
-        this.init();
+        this.initializeAuth();
     }
 
-    async init() {
+    async initializeAuth() {
         try {
-            // Wait for Firebase to be initialized
-            await this.waitForFirebase();
-            
-            // Get Firebase services
-            const firebaseServices = window.firebaseConfig;
-            
-            if (!firebaseServices || !firebaseServices.auth) {
-                throw new Error('Firebase services not available');
+            // Wait for Firebase to be available
+            if (!window.firebaseConfig) {
+                setTimeout(() => this.initializeAuth(), 100);
+                return;
             }
-            
-            this.auth = firebaseServices.auth;
-            this.db = firebaseServices.db;
-            this.googleProvider = firebaseServices.googleProvider;
-            
-            // Check if user is already authenticated
+
+            this.auth = window.firebaseConfig.auth;
+            this.db = window.firebaseConfig.db;
+
+            // Set up Google provider
+            this.providers.google = new firebase.auth.GoogleAuthProvider();
+            this.providers.google.addScope('profile');
+            this.providers.google.addScope('email');
+
+            // Listen for auth state changes
             this.auth.onAuthStateChanged((user) => {
-                if (user) {
-                    console.log('👤 User is signed in:', user.email);
-                    this.redirectToApp();
-                } else {
-                    console.log('👤 User is signed out');
-                    this.showLoginForm();
-                }
+                this.handleAuthStateChange(user);
             });
-            
-            this.bindEvents();
-            this.isInitialized = true;
-            
-            console.log('🔐 Auth Manager initialized successfully');
-            
+
+            // Set up form handlers
+            this.setupFormHandlers();
+
+            console.log('Auth Manager initialized');
         } catch (error) {
-            console.error('❌ Auth Manager initialization failed:', error);
-            this.showInitializationError(error);
+            console.error('Error initializing auth:', error);
+            this.authState = 'error';
         }
     }
 
-    async waitForFirebase() {
-        let attempts = 0;
-        const maxAttempts = 100; // 10 seconds max wait
-        
-        while ((!window.firebaseManager || !window.firebaseManager.isReady()) && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        if (!window.firebaseManager || !window.firebaseManager.isReady()) {
-            throw new Error('Firebase not initialized');
-        }
-        
-        // Wait a bit more for services to be fully ready
-        await new Promise(resolve => setTimeout(resolve, 200));
-    }
-
-    showInitializationError(error) {
-        console.error('Auth initialization error:', error);
-        
-        // Show a user-friendly error message
-        if (document.body) {
-            const errorMessage = document.createElement('div');
-            errorMessage.innerHTML = `
-                <div style="
-                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                    background: #1e293b; color: #f8fafc; padding: 2rem; border-radius: 1rem;
-                    border: 1px solid #ef4444; max-width: 400px; text-align: center;
-                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-                    z-index: 10000;
-                ">
-                    <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
-                    <h3 style="color: #ef4444; margin-bottom: 1rem;">Authentication Error</h3>
-                    <p style="margin-bottom: 1.5rem; line-height: 1.5;">
-                        Unable to initialize authentication system.<br>
-                        Please check your Firebase configuration.
-                    </p>
-                    <button onclick="location.reload()" style="
-                        background: #6366f1; color: white; border: none;
-                        padding: 0.75rem 1.5rem; border-radius: 0.5rem;
-                        cursor: pointer; font-size: 1rem;
-                    ">Retry</button>
-                </div>
-            `;
-            document.body.appendChild(errorMessage);
-        }
-    }
-
-    bindEvents() {
+    setupFormHandlers() {
         // Login form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
-            loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleLogin();
+            });
         }
 
         // Signup form
         const signupForm = document.getElementById('signupForm');
         if (signupForm) {
-            signupForm.addEventListener('submit', (e) => this.handleSignup(e));
+            signupForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleSignup();
+            });
         }
 
         // Forgot password form
-        const forgotForm = document.getElementById('forgotForm');
+        const forgotForm = document.getElementById('forgotPasswordForm');
         if (forgotForm) {
-            forgotForm.addEventListener('submit', (e) => this.handleForgotPassword(e));
-        }
-    }
-
-    async handleLogin(e) {
-        e.preventDefault();
-        
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const rememberMe = document.getElementById('rememberMe').checked;
-
-        if (!this.validateEmail(email)) {
-            this.showMessage('Please enter a valid email address', 'error');
-            return;
-        }
-
-        if (password.length < 6) {
-            this.showMessage('Password must be at least 6 characters long', 'error');
-            return;
-        }
-
-        this.showLoading(true);
-        
-        try {
-            // Set persistence based on remember me checkbox
-            const persistence = rememberMe ? 
-                firebase.auth.Auth.Persistence.LOCAL : 
-                firebase.auth.Auth.Persistence.SESSION;
-            
-            await this.auth.setPersistence(persistence);
-            
-            const userCredential = await this.auth.signInWithEmailAndPassword(email, password);
-            const user = userCredential.user;
-            
-            console.log('Login successful:', user);
-            this.showMessage('Login successful! Redirecting...', 'success');
-            
-            // Update user's last login
-            await this.updateUserProfile(user.uid, {
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            forgotForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleForgotPassword();
             });
-            
-            setTimeout(() => {
-                this.redirectToApp();
-            }, 1000);
-            
-        } catch (error) {
-            console.error('Login error:', error);
-            this.showMessage(this.getErrorMessage(error), 'error');
-        } finally {
-            this.showLoading(false);
+        }
+
+        // Social login buttons
+        const googleBtn = document.getElementById('googleSignInBtn');
+        if (googleBtn) {
+            googleBtn.addEventListener('click', () => this.signInWithGoogle());
+        }
+
+        // Guest login button
+        const guestBtn = document.getElementById('guestLoginBtn');
+        if (guestBtn) {
+            guestBtn.addEventListener('click', () => this.signInAsGuest());
         }
     }
 
-    async handleSignup(e) {
-        e.preventDefault();
-        
-        const firstName = document.getElementById('firstName').value.trim();
-        const lastName = document.getElementById('lastName').value.trim();
-        const email = document.getElementById('signupEmail').value;
-        const password = document.getElementById('signupPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        const agreeTerms = document.getElementById('agreeTerms').checked;
-
-        // Validation
-        if (!firstName || !lastName) {
-            this.showMessage('Please enter your first and last name', 'error');
-            return;
-        }
-
-        if (!this.validateEmail(email)) {
-            this.showMessage('Please enter a valid email address', 'error');
-            return;
-        }
-
-        if (password.length < 6) {
-            this.showMessage('Password must be at least 6 characters long', 'error');
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            this.showMessage('Passwords do not match', 'error');
-            return;
-        }
-
-        if (!agreeTerms) {
-            this.showMessage('Please agree to the Terms of Service and Privacy Policy', 'error');
-            return;
-        }
-
-        this.showLoading(true);
-        
+    async handleLogin() {
         try {
-            const userCredential = await this.auth.createUserWithEmailAndPassword(email, password);
-            const user = userCredential.user;
+            const email = document.getElementById('email')?.value;
+            const password = document.getElementById('password')?.value;
+
+            if (!email || !password) {
+                this.showError('Please fill in all fields');
+                return;
+            }
+
+            this.showLoading('Signing you in...');
+
+            const userCredential = await this.auth.signInWithEmailAndPassword(email, password);
+            this.currentUser = userCredential.user;
+
+            await this.updateUserProfile();
             
-            // Update user profile
-            await user.updateProfile({
-                displayName: `${firstName} ${lastName}`
+            this.showSuccess('Welcome back!');
+            this.redirectToApp();
+
+        } catch (error) {
+            this.hideLoading();
+            this.handleAuthError(error);
+        }
+    }
+
+    async handleSignup() {
+        try {
+            const email = document.getElementById('signupEmail')?.value;
+            const password = document.getElementById('signupPassword')?.value;
+            const confirmPassword = document.getElementById('confirmPassword')?.value;
+            const displayName = document.getElementById('displayName')?.value;
+
+            // Validation
+            if (!email || !password || !confirmPassword || !displayName) {
+                this.showError('Please fill in all fields');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                this.showError('Passwords do not match');
+                return;
+            }
+
+            if (password.length < 6) {
+                this.showError('Password must be at least 6 characters');
+                return;
+            }
+
+            this.showLoading('Creating your account...');
+
+            // Create user account
+            const userCredential = await this.auth.createUserWithEmailAndPassword(email, password);
+            this.currentUser = userCredential.user;
+
+            // Update profile with display name
+            await this.currentUser.updateProfile({
+                displayName: displayName
             });
 
             // Create user document in Firestore
-            await this.createUserDocument(user.uid, {
-                firstName,
-                lastName,
-                email,
-                displayName: `${firstName} ${lastName}`,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                preferences: {
-                    dietaryRestrictions: [],
-                    allergies: [],
-                    favoritesCuisines: [],
-                    nutritionGoals: {
-                        calories: 2000,
-                        protein: 150,
-                        carbs: 200,
-                        fat: 70
-                    }
-                }
+            await this.createUserDocument({
+                uid: this.currentUser.uid,
+                email: email,
+                displayName: displayName,
+                createdAt: new Date().toISOString(),
+                authProvider: 'email',
+                preferences: this.getDefaultPreferences()
             });
-            
-            console.log('Signup successful:', user);
-            this.showMessage('Account created successfully! Redirecting...', 'success');
-            
-            setTimeout(() => {
-                this.redirectToApp();
-            }, 1000);
-            
+
+            this.showSuccess('Account created successfully!');
+            this.redirectToApp();
+
         } catch (error) {
-            console.error('Signup error:', error);
-            this.showMessage(this.getErrorMessage(error), 'error');
-        } finally {
-            this.showLoading(false);
+            this.hideLoading();
+            this.handleAuthError(error);
         }
     }
 
-    async handleForgotPassword(e) {
-        e.preventDefault();
-        
-        const email = document.getElementById('resetEmail').value;
-
-        if (!this.validateEmail(email)) {
-            this.showMessage('Please enter a valid email address', 'error');
-            return;
-        }
-
-        this.showLoading(true);
-        
+    async handleForgotPassword() {
         try {
+            const email = document.getElementById('forgotEmail')?.value;
+
+            if (!email) {
+                this.showError('Please enter your email address');
+                return;
+            }
+
+            this.showLoading('Sending reset email...');
+
             await this.auth.sendPasswordResetEmail(email);
-            this.showMessage('Password reset email sent! Check your inbox.', 'success');
             
-            setTimeout(() => {
-                this.showLogin();
-            }, 2000);
-            
+            this.hideLoading();
+            this.showSuccess('Password reset email sent! Check your inbox.');
+            this.showLogin();
+
         } catch (error) {
-            console.error('Password reset error:', error);
-            this.showMessage(this.getErrorMessage(error), 'error');
-        } finally {
-            this.showLoading(false);
+            this.hideLoading();
+            this.handleAuthError(error);
         }
     }
 
     async signInWithGoogle() {
-        this.showLoading(true);
-        
         try {
-            const result = await this.auth.signInWithPopup(this.googleProvider);
-            const user = result.user;
-            
-            console.log('Google sign-in successful:', user);
-            
+            this.showLoading('Connecting with Google...');
+
+            const result = await this.auth.signInWithPopup(this.providers.google);
+            this.currentUser = result.user;
+
             // Check if this is a new user
-            const userDoc = await this.db.collection('users').doc(user.uid).get();
+            const isNewUser = result.additionalUserInfo?.isNewUser;
             
-            if (!userDoc.exists) {
-                // Create user document for new Google users
-                const names = user.displayName ? user.displayName.split(' ') : ['', ''];
-                await this.createUserDocument(user.uid, {
-                    firstName: names[0] || '',
-                    lastName: names.slice(1).join(' ') || '',
-                    email: user.email,
-                    displayName: user.displayName || '',
-                    photoURL: user.photoURL || '',
-                    provider: 'google',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                    preferences: {
-                        dietaryRestrictions: [],
-                        allergies: [],
-                        favoritesCuisines: [],
-                        nutritionGoals: {
-                            calories: 2000,
-                            protein: 150,
-                            carbs: 200,
-                            fat: 70
-                        }
-                    }
-                });
-            } else {
-                // Update last login for existing users
-                await this.updateUserProfile(user.uid, {
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+            if (isNewUser) {
+                await this.createUserDocument({
+                    uid: this.currentUser.uid,
+                    email: this.currentUser.email,
+                    displayName: this.currentUser.displayName,
+                    photoURL: this.currentUser.photoURL,
+                    createdAt: new Date().toISOString(),
+                    authProvider: 'google',
+                    preferences: this.getDefaultPreferences()
                 });
             }
+
+            await this.updateUserProfile();
             
-            this.showMessage('Google sign-in successful! Redirecting...', 'success');
-            
-            setTimeout(() => {
-                this.redirectToApp();
-            }, 1000);
-            
+            this.showSuccess(`Welcome ${this.currentUser.displayName || 'back'}!`);
+            this.redirectToApp();
+
         } catch (error) {
-            console.error('Google sign-in error:', error);
-            this.showMessage(this.getErrorMessage(error), 'error');
-        } finally {
-            this.showLoading(false);
+            this.hideLoading();
+            this.handleAuthError(error);
         }
     }
 
-    async createUserDocument(uid, userData) {
+    async signInAsGuest() {
         try {
-            await this.db.collection('users').doc(uid).set(userData);
+            this.showLoading('Setting up guest access...');
+
+            const result = await this.auth.signInAnonymously();
+            this.currentUser = result.user;
+
+            // Create temporary user profile
+            await this.createUserDocument({
+                uid: this.currentUser.uid,
+                displayName: 'Guest User',
+                createdAt: new Date().toISOString(),
+                authProvider: 'anonymous',
+                isGuest: true,
+                preferences: this.getDefaultPreferences()
+            });
+
+            this.showSuccess('Welcome! You\'re using guest mode.');
+            this.redirectToApp();
+
+        } catch (error) {
+            this.hideLoading();
+            this.handleAuthError(error);
+        }
+    }
+
+    async signOut() {
+        try {
+            await this.auth.signOut();
+            this.currentUser = null;
+            this.authState = 'signed-out';
+            
+            // Clear any cached data
+            if (window.app) {
+                window.app = null;
+            }
+            
+            // Redirect to login
+            window.location.href = 'login.html';
+        } catch (error) {
+            console.error('Error signing out:', error);
+            this.showError('Error signing out');
+        }
+    }
+
+    handleAuthStateChange(user) {
+        this.currentUser = user;
+        
+        if (user) {
+            this.authState = 'signed-in';
+            console.log('User signed in:', user.uid);
+            
+            // Update UI with user info
+            this.updateUserUI();
+            
+            // Don't redirect if already on main app
+            if (window.location.pathname.includes('login.html')) {
+                this.redirectToApp();
+            }
+        } else {
+            this.authState = 'signed-out';
+            console.log('User signed out');
+            
+            // Redirect to login if not already there
+            if (!window.location.pathname.includes('login.html')) {
+                this.showLoginForm();
+            }
+        }
+    }
+
+    updateUserUI() {
+        // Update user display name in navbar
+        const userDisplayName = document.getElementById('userDisplayName');
+        if (userDisplayName && this.currentUser) {
+            userDisplayName.textContent = this.currentUser.displayName || 
+                                          this.currentUser.email || 
+                                          'Guest User';
+        }
+
+        // Update user avatar if available
+        const userAvatar = document.querySelector('.user-avatar');
+        if (userAvatar && this.currentUser?.photoURL) {
+            userAvatar.src = this.currentUser.photoURL;
+        }
+    }
+
+    async createUserDocument(userData) {
+        try {
+            if (this.db) {
+                await this.db.collection('users').doc(userData.uid).set(userData, { merge: true });
+                console.log('User document created/updated');
+            }
         } catch (error) {
             console.error('Error creating user document:', error);
-            throw error;
         }
     }
 
-    async updateUserProfile(uid, data) {
+    async updateUserProfile() {
         try {
-            await this.db.collection('users').doc(uid).update(data);
+            if (this.currentUser && this.db) {
+                await this.db.collection('users').doc(this.currentUser.uid).update({
+                    lastLoginAt: new Date().toISOString(),
+                    loginCount: firebase.firestore.FieldValue.increment(1)
+                });
+            }
         } catch (error) {
             console.error('Error updating user profile:', error);
         }
     }
 
-    validateEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+    getDefaultPreferences() {
+        return {
+            nutritionGoals: {
+                dailyCalories: 2000,
+                dailyProtein: 150,
+                dailyCarbs: 225,
+                dailyFat: 67
+            },
+            mealPlanPreferences: {
+                familySize: 2,
+                budget: 50,
+                cookingTime: 45,
+                dietaryRestrictions: [],
+                cuisinePreferences: []
+            },
+            theme: 'dark',
+            notifications: {
+                mealReminders: true,
+                nutritionGoals: true,
+                weeklyReports: true
+            }
+        };
     }
 
-    getErrorMessage(error) {
+    handleAuthError(error) {
+        let message = 'An error occurred. Please try again.';
+        
         switch (error.code) {
             case 'auth/user-not-found':
-                return 'No account found with this email address.';
+                message = 'No account found with this email address.';
+                break;
             case 'auth/wrong-password':
-                return 'Incorrect password. Please try again.';
+                message = 'Incorrect password. Please try again.';
+                break;
             case 'auth/email-already-in-use':
-                return 'An account with this email already exists.';
+                message = 'An account with this email already exists.';
+                break;
             case 'auth/weak-password':
-                return 'Password is too weak. Please choose a stronger password.';
+                message = 'Password is too weak. Please choose a stronger password.';
+                break;
             case 'auth/invalid-email':
-                return 'Please enter a valid email address.';
+                message = 'Invalid email address format.';
+                break;
+            case 'auth/user-disabled':
+                message = 'This account has been disabled.';
+                break;
             case 'auth/too-many-requests':
-                return 'Too many failed attempts. Please try again later.';
+                message = 'Too many failed attempts. Please try again later.';
+                break;
             case 'auth/popup-closed-by-user':
-                return 'Sign-in was cancelled. Please try again.';
-            case 'auth/network-request-failed':
-                return 'Network error. Please check your connection and try again.';
+                message = 'Sign-in was cancelled.';
+                break;
+            case 'auth/popup-blocked':
+                message = 'Pop-up was blocked. Please allow pop-ups and try again.';
+                break;
             default:
-                return error.message || 'An unexpected error occurred. Please try again.';
+                console.error('Auth error:', error);
+                message = error.message || message;
         }
+        
+        this.showError(message);
     }
 
-    showMessage(message, type = 'info') {
-        const container = document.getElementById('messageContainer');
-        if (!container) return;
-
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message message-${type}`;
-        messageDiv.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            ${message}
-        `;
-
-        container.appendChild(messageDiv);
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (messageDiv.parentNode) {
-                messageDiv.parentNode.removeChild(messageDiv);
-            }
-        }, 5000);
-    }
-
-    showLoading(show) {
-        const spinner = document.getElementById('loadingSpinner');
-        if (spinner) {
-            spinner.style.display = show ? 'flex' : 'none';
-        }
-
-        // Disable form buttons
-        const buttons = document.querySelectorAll('.auth-btn');
-        buttons.forEach(btn => {
-            btn.disabled = show;
-            if (show) {
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
-            } else {
-                // Reset button text based on button id
-                if (btn.id === 'loginBtn') {
-                    btn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Sign In';
-                } else if (btn.id === 'signupBtn') {
-                    btn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Create Account';
-                } else if (btn.id === 'resetBtn') {
-                    btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Send Reset Link';
-                }
-            }
-        });
-    }
-
+    // UI Management
     showLogin() {
         this.hideAllCards();
-        const loginCard = document.querySelector('.auth-card:first-child');
+        const loginCard = document.getElementById('loginCard');
         if (loginCard) {
             loginCard.style.display = 'block';
             loginCard.classList.add('fade-in');
@@ -453,7 +417,7 @@ class AuthManager {
     }
 
     hideAllCards() {
-        const cards = document.querySelectorAll('.auth-card');
+        const cards = document.querySelectorAll('.auth-card > div');
         cards.forEach(card => {
             card.style.display = 'none';
             card.classList.remove('fade-in');
@@ -461,8 +425,13 @@ class AuthManager {
     }
 
     redirectToApp() {
+        // Show body if hidden
+        document.body.style.display = 'block';
+        
         // Redirect to main app
-        window.location.href = 'index.html';
+        if (window.location.pathname.includes('login.html')) {
+            window.location.href = 'index.html';
+        }
     }
 
     showLoginForm() {
@@ -472,37 +441,147 @@ class AuthManager {
             window.location.href = 'login.html';
         }
     }
+
+    showLoading(message) {
+        // Show loading state on buttons
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(btn => {
+            if (btn.classList.contains('btn-primary') || btn.classList.contains('btn-google')) {
+                btn.disabled = true;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = `
+                    <span class="loading-spinner"></span>
+                    ${message}
+                `;
+                btn.dataset.originalText = originalText;
+            }
+        });
+    }
+
+    hideLoading() {
+        // Restore button states
+        const buttons = document.querySelectorAll('.btn[data-original-text]');
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.innerHTML = btn.dataset.originalText;
+            delete btn.dataset.originalText;
+        });
+    }
+
+    showSuccess(message) {
+        this.showAlert(message, 'success');
+    }
+
+    showError(message) {
+        this.showAlert(message, 'danger');
+    }
+
+    showAlert(message, type) {
+        // Remove existing alerts
+        const existingAlerts = document.querySelectorAll('.auth-alert');
+        existingAlerts.forEach(alert => alert.remove());
+
+        // Create new alert
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} auth-alert`;
+        alert.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            ${message}
+        `;
+
+        // Insert at top of active form
+        const activeCard = document.querySelector('.auth-card > div[style*="block"]');
+        if (activeCard) {
+            activeCard.insertBefore(alert, activeCard.firstChild);
+        }
+
+        // Auto-remove success messages
+        if (type === 'success') {
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 3000);
+        }
+    }
+
+    // Password visibility toggle
+    togglePasswordVisibility(inputId, iconId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleIcon = document.getElementById(iconId);
+        
+        if (passwordInput && toggleIcon) {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+    }
+
+    // Check if user is authenticated
+    isAuthenticated() {
+        return this.currentUser !== null;
+    }
+
+    // Get current user info
+    getCurrentUser() {
+        return this.currentUser;
+    }
+
+    // Check if user is guest
+    isGuest() {
+        return this.currentUser?.isAnonymous || false;
+    }
+
+    // Upgrade guest account to full account
+    async upgradeGuestAccount(email, password, displayName) {
+        try {
+            if (!this.isGuest()) {
+                throw new Error('User is not a guest');
+            }
+
+            const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+            const result = await this.currentUser.linkWithCredential(credential);
+            
+            // Update profile
+            await result.user.updateProfile({
+                displayName: displayName
+            });
+
+            // Update user document
+            await this.createUserDocument({
+                uid: result.user.uid,
+                email: email,
+                displayName: displayName,
+                authProvider: 'email',
+                isGuest: false,
+                upgradedAt: new Date().toISOString()
+            });
+
+            this.showSuccess('Account upgraded successfully!');
+            return result.user;
+
+        } catch (error) {
+            this.handleAuthError(error);
+            throw error;
+        }
+    }
 }
 
-// Global functions for button clicks
-function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const toggleIcon = document.getElementById('passwordToggle');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleIcon.classList.remove('fa-eye');
-        toggleIcon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        toggleIcon.classList.remove('fa-eye-slash');
-        toggleIcon.classList.add('fa-eye');
+// Global functions for HTML onclick events
+function togglePassword(inputId = 'password', iconId = 'passwordToggle') {
+    if (window.authManager) {
+        window.authManager.togglePasswordVisibility(inputId, iconId);
     }
 }
 
 function toggleSignupPassword() {
-    const passwordInput = document.getElementById('signupPassword');
-    const toggleIcon = document.getElementById('signupPasswordToggle');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleIcon.classList.remove('fa-eye');
-        toggleIcon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        toggleIcon.classList.remove('fa-eye-slash');
-        toggleIcon.classList.add('fa-eye');
-    }
+    togglePassword('signupPassword', 'signupPasswordToggle');
 }
 
 function showLogin() {
@@ -526,6 +605,18 @@ function showForgotPassword() {
 function signInWithGoogle() {
     if (window.authManager) {
         window.authManager.signInWithGoogle();
+    }
+}
+
+function signInAsGuest() {
+    if (window.authManager) {
+        window.authManager.signInAsGuest();
+    }
+}
+
+function logout() {
+    if (window.authManager) {
+        window.authManager.signOut();
     }
 }
 

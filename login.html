@@ -20,196 +20,562 @@
 <body class="auth-body">
     <div class="auth-container">
         <div class="auth-card">
-            <div class="auth-header text-center mb-4">
-                <i class="fas fa-utensils auth-icon"></i>
-                <h2 class="auth-title">Smart Recipe Tracker</h2>
-                <p class="auth-subtitle">Welcome back! Sign in to continue your culinary journey.</p>
-            </div>
-
             <!-- Login Form -->
-            <form id="loginForm" class="auth-form">
-                <div class="form-group mb-3">
-                    <label for="email" class="form-label">Email Address</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+            <div id="loginCard">
+                <div class="auth-header text-center mb-4">
+                    <i class="fas fa-utensils auth-icon"></i>
+                    <h2 class="auth-title">Smart Recipe Tracker</h2>
+                    <p class="auth-subtitle">Welcome back!</p>
+                </div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address</label>
                         <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
                     </div>
-                </div>
-                
-                <div class="form-group mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                        <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
-                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
-                            <i class="fas fa-eye" id="passwordToggle"></i>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                            <span class="input-group-text" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="passwordToggle"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </button>
+
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <button type="button" class="btn btn-google" onclick="signInWithGoogle()">
+                        <i class="fab fa-google me-2"></i>Continue with Google
+                    </button>
+
+                    <button type="button" class="btn btn-link w-100 mt-2" onclick="signInAsGuest()">
+                        <i class="fas fa-user-secret me-2"></i>Continue as Guest
+                    </button>
+
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn-link" onclick="showForgotPassword()">
+                            Forgot your password?
                         </button>
                     </div>
-                </div>
 
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="rememberMe">
-                    <label class="form-check-label" for="rememberMe">
-                        Remember me
-                    </label>
-                </div>
-
-                <button type="submit" class="btn btn-primary auth-btn w-100 mb-3" id="loginBtn">
-                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
-                </button>
-            </form>
-
-            <!-- Google Sign In -->
-            <div class="text-center mb-3">
-                <div class="divider">
-                    <span>or</span>
-                </div>
-            </div>
-
-            <button class="btn btn-google w-100 mb-3" onclick="signInWithGoogle()">
-                <i class="fab fa-google me-2"></i>Continue with Google
-            </button>
-
-            <!-- Auth Links -->
-            <div class="auth-links text-center">
-                <p class="mb-2">
-                    <a href="#" onclick="showForgotPassword()" class="auth-link">Forgot your password?</a>
-                </p>
-                <p class="mb-0">
-                    Don't have an account? 
-                    <a href="#" onclick="showSignUp()" class="auth-link">Sign up here</a>
-                </p>
-            </div>
-        </div>
-
-        <!-- Sign Up Form (Hidden by default) -->
-        <div class="auth-card" id="signupCard" style="display: none;">
-            <div class="auth-header text-center mb-4">
-                <i class="fas fa-utensils auth-icon"></i>
-                <h2 class="auth-title">Create Account</h2>
-                <p class="auth-subtitle">Join us and start tracking your nutrition today!</p>
-            </div>
-
-            <form id="signupForm" class="auth-form">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="firstName" class="form-label">First Name</label>
-                        <input type="text" class="form-control" id="firstName" placeholder="First name" required>
+                    <div class="text-center mt-3">
+                        <span class="text-muted">Don't have an account? </span>
+                        <button type="button" class="btn-link" onclick="showSignUp()">
+                            Sign up here
+                        </button>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="lastName" class="form-label">Last Name</label>
-                        <input type="text" class="form-control" id="lastName" placeholder="Last name" required>
-                    </div>
+                </form>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div id="signupCard" style="display: none;">
+                <div class="auth-header text-center mb-4">
+                    <i class="fas fa-utensils auth-icon"></i>
+                    <h2 class="auth-title">Create Account</h2>
+                    <p class="auth-subtitle">Join Smart Recipe Tracker</p>
                 </div>
 
-                <div class="form-group mb-3">
-                    <label for="signupEmail" class="form-label">Email Address</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="displayName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="displayName" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupEmail" class="form-label">Email Address</label>
                         <input type="email" class="form-control" id="signupEmail" placeholder="Enter your email" required>
                     </div>
-                </div>
-                
-                <div class="form-group mb-3">
-                    <label for="signupPassword" class="form-label">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                        <input type="password" class="form-control" id="signupPassword" placeholder="Create a password" required>
-                        <button class="btn btn-outline-secondary" type="button" onclick="toggleSignupPassword()">
-                            <i class="fas fa-eye" id="signupPasswordToggle"></i>
-                        </button>
-                    </div>
-                    <div class="form-text">Password must be at least 6 characters long</div>
-                </div>
 
-                <div class="form-group mb-3">
-                    <label for="confirmPassword" class="form-label">Confirm Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <div class="form-group">
+                        <label for="signupPassword" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="signupPassword" placeholder="Create a password (min 6 characters)" required>
+                            <span class="input-group-text" onclick="toggleSignupPassword()">
+                                <i class="fas fa-eye" id="signupPasswordToggle"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
                         <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" required>
                     </div>
-                </div>
 
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-                    <label class="form-check-label" for="agreeTerms">
-                        I agree to the <a href="#" class="auth-link">Terms of Service</a> and <a href="#" class="auth-link">Privacy Policy</a>
-                    </label>
-                </div>
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                            </label>
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn btn-primary auth-btn w-100 mb-3" id="signupBtn">
-                    <i class="fas fa-user-plus me-2"></i>Create Account
-                </button>
-            </form>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </button>
 
-            <!-- Google Sign Up -->
-            <div class="text-center mb-3">
-                <div class="divider">
-                    <span>or</span>
-                </div>
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <button type="button" class="btn btn-google" onclick="signInWithGoogle()">
+                        <i class="fab fa-google me-2"></i>Sign up with Google
+                    </button>
+
+                    <div class="text-center mt-3">
+                        <span class="text-muted">Already have an account? </span>
+                        <button type="button" class="btn-link" onclick="showLogin()">
+                            Sign in here
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <button class="btn btn-google w-100 mb-3" onclick="signInWithGoogle()">
-                <i class="fab fa-google me-2"></i>Sign up with Google
-            </button>
+            <!-- Forgot Password Form -->
+            <div id="forgotCard" style="display: none;">
+                <div class="auth-header text-center mb-4">
+                    <i class="fas fa-key auth-icon"></i>
+                    <h2 class="auth-title">Reset Password</h2>
+                    <p class="auth-subtitle">We'll send you a reset link</p>
+                </div>
 
-            <div class="auth-links text-center">
-                <p class="mb-0">
-                    Already have an account? 
-                    <a href="#" onclick="showLogin()" class="auth-link">Sign in here</a>
-                </p>
+                <form id="forgotPasswordForm">
+                    <div class="form-group">
+                        <label for="forgotEmail" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="forgotEmail" placeholder="Enter your email address" required>
+                        <small class="form-text text-muted">
+                            Enter the email address associated with your account and we'll send you a link to reset your password.
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Send Reset Link
+                    </button>
+
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn-link" onclick="showLogin()">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Sign In
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <!-- Forgot Password Form (Hidden by default) -->
-        <div class="auth-card" id="forgotCard" style="display: none;">
-            <div class="auth-header text-center mb-4">
-                <i class="fas fa-key auth-icon"></i>
-                <h2 class="auth-title">Reset Password</h2>
-                <p class="auth-subtitle">Enter your email to receive a password reset link.</p>
-            </div>
-
-            <form id="forgotForm" class="auth-form">
-                <div class="form-group mb-3">
-                    <label for="resetEmail" class="form-label">Email Address</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                        <input type="email" class="form-control" id="resetEmail" placeholder="Enter your email" required>
+        <!-- App Features Preview -->
+        <div class="features-preview mt-4">
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="feature-item">
+                        <i class="fas fa-brain fa-2x text-primary mb-2"></i>
+                        <h6>AI Recommendations</h6>
+                        <small class="text-muted">Personalized recipe suggestions</small>
                     </div>
                 </div>
+                <div class="col-4">
+                    <div class="feature-item">
+                        <i class="fas fa-chart-pie fa-2x text-success mb-2"></i>
+                        <h6>Nutrition Tracking</h6>
+                        <small class="text-muted">Monitor your daily intake</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="feature-item">
+                        <i class="fas fa-calendar-alt fa-2x text-warning mb-2"></i>
+                        <h6>Meal Planning</h6>
+                        <small class="text-muted">Optimized weekly plans</small>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <button type="submit" class="btn btn-primary auth-btn w-100 mb-3" id="resetBtn">
-                    <i class="fas fa-paper-plane me-2"></i>Send Reset Link
-                </button>
-            </form>
-
-            <div class="auth-links text-center">
-                <p class="mb-0">
-                    Remember your password? 
-                    <a href="#" onclick="showLogin()" class="auth-link">Back to sign in</a>
-                </p>
+        <!-- Demo Mode Notice -->
+        <div class="demo-notice mt-4 text-center">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Demo Mode:</strong> You can explore the app using guest mode or create a free account for full access.
             </div>
         </div>
     </div>
 
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+    <!-- Loading Overlay -->
+    <div id="authLoadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="text-center text-white">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div id="loadingMessage">Signing you in...</div>
         </div>
     </div>
-
-    <!-- Success/Error Messages -->
-    <div id="messageContainer" class="message-container"></div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Configuration Management (Load First) -->
+    <!-- Configuration and Firebase -->
     <script src="js/config-manager.js"></script>
-    
-    <!-- Firebase Configuration and Authentication -->
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js"></script>
+
+    <script>
+        // Initialize auth forms when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show login form by default
+            showLogin();
+
+            // Add form validation
+            setupFormValidation();
+
+            // Add real-time password strength indicator
+            setupPasswordStrength();
+
+            // Add enter key handling
+            setupKeyboardHandlers();
+        });
+
+        function setupFormValidation() {
+            // Real-time email validation
+            const emailInputs = document.querySelectorAll('input[type="email"]');
+            emailInputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value && !isValidEmail(this.value)) {
+                        this.classList.add('is-invalid');
+                        showFieldError(this, 'Please enter a valid email address');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        hideFieldError(this);
+                    }
+                });
+            });
+
+            // Password confirmation validation
+            const confirmPassword = document.getElementById('confirmPassword');
+            if (confirmPassword) {
+                confirmPassword.addEventListener('input', function() {
+                    const password = document.getElementById('signupPassword').value;
+                    if (this.value && this.value !== password) {
+                        this.classList.add('is-invalid');
+                        showFieldError(this, 'Passwords do not match');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        hideFieldError(this);
+                    }
+                });
+            }
+        }
+
+        function setupPasswordStrength() {
+            const passwordInput = document.getElementById('signupPassword');
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    const strength = calculatePasswordStrength(this.value);
+                    updatePasswordStrengthIndicator(strength);
+                });
+            }
+        }
+
+        function setupKeyboardHandlers() {
+            // Handle Enter key in forms
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const activeForm = document.querySelector('.auth-card > div[style*="block"] form');
+                    if (activeForm) {
+                        e.preventDefault();
+                        activeForm.dispatchEvent(new Event('submit'));
+                    }
+                }
+            });
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showFieldError(field, message) {
+            hideFieldError(field); // Remove existing error
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback';
+            errorDiv.textContent = message;
+            field.parentNode.appendChild(errorDiv);
+        }
+
+        function hideFieldError(field) {
+            const existingError = field.parentNode.querySelector('.invalid-feedback');
+            if (existingError) {
+                existingError.remove();
+            }
+        }
+
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            return strength;
+        }
+
+        function updatePasswordStrengthIndicator(strength) {
+            // Remove existing indicator
+            const existingIndicator = document.querySelector('.password-strength');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+
+            const passwordField = document.getElementById('signupPassword');
+            if (!passwordField.value) return;
+
+            const indicator = document.createElement('div');
+            indicator.className = 'password-strength mt-1';
+            
+            const strengthLevels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+            const strengthColors = ['danger', 'warning', 'info', 'primary', 'success'];
+            
+            const level = Math.min(strength, 4);
+            const levelText = strengthLevels[level];
+            const levelColor = strengthColors[level];
+            
+            indicator.innerHTML = `
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-${levelColor}" style="width: ${(level + 1) * 20}%"></div>
+                </div>
+                <small class="text-${levelColor}">Password strength: ${levelText}</small>
+            `;
+            
+            passwordField.parentNode.appendChild(indicator);
+        }
+
+        // Enhanced error handling with specific messages
+        function handleAuthError(error) {
+            console.error('Authentication error:', error);
+            
+            let message = 'An unexpected error occurred. Please try again.';
+            let suggestions = '';
+            
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    message = 'No account found with this email address.';
+                    suggestions = 'Please check your email or create a new account.';
+                    break;
+                case 'auth/wrong-password':
+                    message = 'Incorrect password.';
+                    suggestions = 'Please try again or reset your password.';
+                    break;
+                case 'auth/email-already-in-use':
+                    message = 'An account with this email already exists.';
+                    suggestions = 'Please sign in instead or use a different email.';
+                    break;
+                case 'auth/weak-password':
+                    message = 'Password is too weak.';
+                    suggestions = 'Please choose a password with at least 6 characters.';
+                    break;
+                case 'auth/invalid-email':
+                    message = 'Invalid email address format.';
+                    suggestions = 'Please enter a valid email address.';
+                    break;
+                case 'auth/user-disabled':
+                    message = 'This account has been disabled.';
+                    suggestions = 'Please contact support for assistance.';
+                    break;
+                case 'auth/too-many-requests':
+                    message = 'Too many failed attempts.';
+                    suggestions = 'Please wait a moment before trying again.';
+                    break;
+                case 'auth/network-request-failed':
+                    message = 'Network connection failed.';
+                    suggestions = 'Please check your internet connection and try again.';
+                    break;
+                case 'auth/popup-closed-by-user':
+                    message = 'Sign-in was cancelled.';
+                    suggestions = 'Please try again to complete the sign-in process.';
+                    break;
+                case 'auth/popup-blocked':
+                    message = 'Pop-up was blocked by your browser.';
+                    suggestions = 'Please allow pop-ups for this site and try again.';
+                    break;
+            }
+            
+            showAuthAlert(message, 'danger', suggestions);
+        }
+
+        function showAuthAlert(message, type, suggestions = '') {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.auth-alert');
+            existingAlerts.forEach(alert => alert.remove());
+
+            // Create new alert
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} auth-alert`;
+            alert.innerHTML = `
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2 mt-1"></i>
+                    <div>
+                        <div class="fw-semibold">${message}</div>
+                        ${suggestions ? `<small class="text-muted">${suggestions}</small>` : ''}
+                    </div>
+                    <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
+
+            // Insert at top of active form
+            const activeCard = document.querySelector('.auth-card > div[style*="block"]');
+            if (activeCard) {
+                activeCard.insertBefore(alert, activeCard.firstChild);
+            }
+
+            // Auto-remove success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 5000);
+            }
+        }
+
+        // Show loading state
+        function showAuthLoading(message) {
+            const overlay = document.getElementById('authLoadingOverlay');
+            const messageEl = document.getElementById('loadingMessage');
+            
+            if (overlay && messageEl) {
+                messageEl.textContent = message;
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function hideAuthLoading() {
+            const overlay = document.getElementById('authLoadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
+        // Auto-focus on first input when switching forms
+        function showLogin() {
+            if (window.authManager) {
+                window.authManager.showLogin();
+                setTimeout(() => {
+                    const emailInput = document.getElementById('email');
+                    if (emailInput) emailInput.focus();
+                }, 100);
+            }
+        }
+
+        function showSignUp() {
+            if (window.authManager) {
+                window.authManager.showSignUp();
+                setTimeout(() => {
+                    const nameInput = document.getElementById('displayName');
+                    if (nameInput) nameInput.focus();
+                }, 100);
+            }
+        }
+
+        function showForgotPassword() {
+            if (window.authManager) {
+                window.authManager.showForgotPassword();
+                setTimeout(() => {
+                    const emailInput = document.getElementById('forgotEmail');
+                    if (emailInput) emailInput.focus();
+                }, 100);
+            }
+        }
+
+        // Analytics and tracking (optional)
+        function trackAuthEvent(eventName, properties = {}) {
+            // Add analytics tracking here if needed
+            console.log('Auth Event:', eventName, properties);
+        }
+
+        // Handle offline status
+        window.addEventListener('online', function() {
+            const offlineAlert = document.querySelector('.offline-alert');
+            if (offlineAlert) {
+                offlineAlert.remove();
+            }
+        });
+
+        window.addEventListener('offline', function() {
+            showAuthAlert('You are currently offline. Some features may not work properly.', 'warning');
+        });
+    </script>
+
+    <style>
+        .features-preview {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .feature-item {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .demo-notice {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .password-strength .progress {
+            height: 4px !important;
+        }
+
+        .form-check-label a {
+            text-decoration: none;
+        }
+
+        .form-check-label a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-alert .btn-close {
+            font-size: 0.75rem;
+            padding: 0.25rem;
+        }
+
+        .invalid-feedback {
+            display: block;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+            color: #dc3545;
+        }
+
+        .is-invalid {
+            border-color: #dc3545;
+        }
+
+        .is-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        @media (max-width: 576px) {
+            .auth-container {
+                padding: 1rem;
+            }
+            
+            .features-preview {
+                display: none;
+            }
+        }
+    </style>
 </body>
 </html>

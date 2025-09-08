@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve": "http-server -p 8080 -c-1",
-    "start": "npm run server",
+    "start": "npm run serve",
     "lint": "eslint js/**/*.js",
     "format": "prettier --write \"**/*.{js,html,css,md}\"",
     "setup": "node scripts/setup.js"

@@ -1,24 +1,51 @@
-/**
- * ECharts Configuration for Dark Theme
- * Creates interactive charts for nutrition, health, and meal planning data
- */
-
+// ECharts Configuration and Management
 class ChartManager {
     constructor() {
-        this.charts = {};
-        this.darkTheme = {
+        this.charts = new Map();
+        this.theme = this.getChartTheme();
+        this.initialized = false;
+        
+        // Wait for ECharts to be available
+        this.initializeWhenReady();
+    }
+
+    initializeWhenReady() {
+        if (typeof echarts !== 'undefined') {
+            this.initialized = true;
+            console.log('Chart Manager initialized with ECharts');
+        } else {
+            setTimeout(() => this.initializeWhenReady(), 100);
+        }
+    }
+
+    getChartTheme() {
+        return {
+            color: [
+                '#6366f1', '#8b5cf6', '#10b981', '#f59e0b', 
+                '#ef4444', '#06b6d4', '#84cc16', '#f97316'
+            ],
             backgroundColor: 'transparent',
             textStyle: {
-                color: '#f8fafc'
+                color: '#f8fafc',
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
             },
             title: {
                 textStyle: {
-                    color: '#f8fafc'
+                    color: '#f8fafc',
+                    fontSize: 18,
+                    fontWeight: 600
                 }
             },
             legend: {
                 textStyle: {
                     color: '#cbd5e1'
+                }
+            },
+            tooltip: {
+                backgroundColor: '#1e293b',
+                borderColor: '#475569',
+                textStyle: {
+                    color: '#f8fafc'
                 }
             },
             grid: {
@@ -65,95 +92,48 @@ class ChartManager {
                 }
             }
         };
-        
-        this.colorPalette = {
-            primary: '#6366f1',
-            secondary: '#8b5cf6',
-            accent: '#06b6d4',
-            success: '#10b981',
-            warning: '#f59e0b',
-            danger: '#ef4444',
-            info: '#3b82f6'
-        };
-        
-        this.gradientColors = [
-            ['#6366f1', '#8b5cf6'],
-            ['#10b981', '#06b6d4'],
-            ['#f59e0b', '#ef4444'],
-            ['#3b82f6', '#6366f1']
-        ];
-        
-        this.initializeCharts();
     }
 
-    initializeCharts() {
-        // Wait for DOM to be ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.setupEventListeners());
-        } else {
-            this.setupEventListeners();
+    // Create nutrition pie chart
+    createNutritionChart(containerId, data) {
+        if (!this.initialized) {
+            setTimeout(() => this.createNutritionChart(containerId, data), 100);
+            return;
         }
-    }
 
-    setupEventListeners() {
-        // Set up resize listener
-        window.addEventListener('resize', () => this.resizeAll());
-    }
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error(`Container ${containerId} not found`);
+            return null;
+        }
 
-    // Create gradient for charts
-    createGradient(chart, colors) {
-        return {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-                { offset: 0, color: colors[0] },
-                { offset: 1, color: colors[1] }
-            ]
-        };
-    }
+        // Dispose existing chart
+        if (this.charts.has(containerId)) {
+            this.charts.get(containerId).dispose();
+        }
 
-    // Nutrition Dashboard Charts
-    createNutritionPieChart() {
-        const container = document.getElementById('nutritionChart');
-        if (!container) return;
+        const chart = echarts.init(container, null, {
+            renderer: 'canvas',
+            useDirtyRect: false
+        });
 
-        const chart = echarts.init(container, 'dark');
-        
         const option = {
-            ...this.darkTheme,
             title: {
-                text: 'Daily Macronutrients',
+                text: data.title || 'Nutrition Breakdown',
                 left: 'center',
-                textStyle: {
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    color: '#f8fafc'
-                }
+                top: 20,
+                textStyle: this.theme.title.textStyle
             },
             tooltip: {
                 trigger: 'item',
-                backgroundColor: '#1e293b',
-                borderColor: '#475569',
-                textStyle: {
-                    color: '#f8fafc'
-                },
-                formatter: function(params) {
-                    return `${params.name}<br/>
-                            Amount: ${params.value}g<br/>
-                            Percentage: ${params.percent}%<br/>
-                            Calories: ${params.data.calories || 0} cal`;
-                }
+                formatter: '{a} <br/>{b}: {c}g ({d}%)',
+                ...this.theme.tooltip
             },
             legend: {
                 orient: 'vertical',
                 left: 'left',
                 top: 'center',
-                textStyle: {
-                    color: '#cbd5e1'
-                }
+                textStyle: this.theme.legend.textStyle
             },
             series: [
                 {
@@ -169,7 +149,7 @@ class ChartManager {
                     emphasis: {
                         label: {
                             show: true,
-                            fontSize: '18',
+                            fontSize: '16',
                             fontWeight: 'bold',
                             color: '#f8fafc'
                         }
@@ -179,721 +159,564 @@ class ChartManager {
                     },
                     data: [
                         { 
-                            value: 0, 
-                            name: 'Protein', 
-                            calories: 0,
-                            itemStyle: { 
-                                color: this.createGradient(chart, ['#3b82f6', '#6366f1'])
-                            } 
+                            value: data.protein * 4, 
+                            name: 'Protein',
+                            itemStyle: { color: this.theme.color[0] }
                         },
                         { 
-                            value: 0, 
-                            name: 'Carbs', 
-                            calories: 0,
-                            itemStyle: { 
-                                color: this.createGradient(chart, ['#10b981', '#06b6d4'])
-                            } 
+                            value: data.carbs * 4, 
+                            name: 'Carbohydrates',
+                            itemStyle: { color: this.theme.color[1] }
                         },
                         { 
-                            value: 0, 
-                            name: 'Fat', 
-                            calories: 0,
-                            itemStyle: { 
-                                color: this.createGradient(chart, ['#f59e0b', '#ef4444'])
-                            } 
-                        },
-                        { 
-                            value: 0, 
-                            name: 'Fiber', 
-                            calories: 0,
-                            itemStyle: { 
-                                color: this.createGradient(chart, ['#8b5cf6', '#d946ef'])
-                            } 
+                            value: data.fat * 9, 
+                            name: 'Fat',
+                            itemStyle: { color: this.theme.color[2] }
                         }
                     ],
                     animationType: 'scale',
                     animationEasing: 'elasticOut',
-                    animationDelay: function (idx) {
-                        return Math.random() * 200;
-                    }
+                    animationDelay: (idx) => Math.random() * 200
                 }
             ]
         };
 
         chart.setOption(option);
-        this.charts.nutritionPie = chart;
+        this.charts.set(containerId, chart);
+
+        // Auto-resize
+        window.addEventListener('resize', () => {
+            chart.resize();
+        });
+
         return chart;
     }
 
-    createNutritionTrendChart() {
-        const container = document.getElementById('weeklyTrendChart');
-        if (!container) return;
+    // Create weekly progress chart
+    createWeeklyChart(containerId, data) {
+        if (!this.initialized) {
+            setTimeout(() => this.createWeeklyChart(containerId, data), 100);
+            return;
+        }
 
-        const chart = echarts.init(container, 'dark');
-        
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.error(`Container ${containerId} not found`);
+            return null;
+        }
+
+        // Dispose existing chart
+        if (this.charts.has(containerId)) {
+            this.charts.get(containerId).dispose();
+        }
+
+        const chart = echarts.init(container);
+
         const option = {
-            ...this.darkTheme,
             title: {
-                text: 'Weekly Nutrition Trends',
-                textStyle: {
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    color: '#f8fafc'
-                }
+                text: data.title || 'Weekly Progress',
+                left: 'center',
+                textStyle: this.theme.title.textStyle
             },
             tooltip: {
                 trigger: 'axis',
-                backgroundColor: '#1e293b',
-                borderColor: '#475569',
-                textStyle: {
-                    color: '#f8fafc'
-                },
                 axisPointer: {
                     type: 'cross',
-                    label: {
-                        backgroundColor: '#6366f1'
+                    crossStyle: {
+                        color: '#999'
                     }
-                }
+                },
+                ...this.theme.tooltip
             },
             legend: {
-                data: ['Calories', 'Protein', 'Carbs', 'Fat'],
-                top: 30,
-                textStyle: {
-                    color: '#cbd5e1'
+                data: ['Calories', 'Protein', 'Goal'],
+                top: 40,
+                textStyle: this.theme.legend.textStyle
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: data.days || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    axisPointer: {
+                        type: 'shadow'
+                    },
+                    ...this.theme.categoryAxis
                 }
-            },
-            grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '3%',
-                containLabel: true,
-                borderColor: '#475569'
-            },
-            xAxis: {
-                type: 'category',
-                boundaryGap: false,
-                data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                axisLine: {
-                    lineStyle: {
-                        color: '#475569'
-                    }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: 'Calories',
+                    min: 0,
+                    max: 2500,
+                    interval: 500,
+                    axisLabel: {
+                        formatter: '{value} cal',
+                        color: this.theme.categoryAxis.axisLabel.color
+                    },
+                    ...this.theme.valueAxis
                 },
-                axisLabel: {
-                    color: '#cbd5e1'
+                {
+                    type: 'value',
+                    name: 'Protein (g)',
+                    min: 0,
+                    max: 200,
+                    interval: 50,
+                    axisLabel: {
+                        formatter: '{value} g',
+                        color: this.theme.categoryAxis.axisLabel.color
+                    },
+                    ...this.theme.valueAxis
                 }
-            },
-            yAxis: {
-                type: 'value',
-                axisLine: {
-                    lineStyle: {
-                        color: '#475569'
-                    }
-                },
-                axisLabel: {
-                    color: '#cbd5e1'
-                },
-                splitLine: {
-                    lineStyle: {
-                        color: '#334155'
-                    }
-                }
-            },
+            ],
             series: [
                 {
                     name: 'Calories',
-                    type: 'line',
-                    data: [0, 0, 0, 0, 0, 0, 0],
-                    smooth: true,
-                    lineStyle: {
-                        width: 3,
-                        color: this.colorPalette.primary
+                    type: 'bar',
+                    data: data.calories || [1800, 1950, 2100, 1750, 2200, 1600, 1900],
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: this.theme.color[0] },
+                            { offset: 1, color: this.theme.color[0] + '80' }
+                        ])
                     },
-                    areaStyle: {
-                        color: this.createGradient(chart, [this.colorPalette.primary + '40', this.colorPalette.primary + '10'])
+                    emphasis: {
+                        itemStyle: {
+                            color: this.theme.color[0]
+                        }
                     }
                 },
                 {
                     name: 'Protein',
                     type: 'line',
-                    data: [0, 0, 0, 0, 0, 0, 0],
+                    yAxisIndex: 1,
+                    data: data.protein || [120, 135, 140, 110, 155, 95, 130],
                     smooth: true,
                     lineStyle: {
-                        width: 2,
-                        color: this.colorPalette.info
+                        color: this.theme.color[1],
+                        width: 3
+                    },
+                    itemStyle: {
+                        color: this.theme.color[1]
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: this.theme.color[1] + '40' },
+                            { offset: 1, color: this.theme.color[1] + '10' }
+                        ])
                     }
                 },
                 {
-                    name: 'Carbs',
+                    name: 'Goal',
                     type: 'line',
-                    data: [0, 0, 0, 0, 0, 0, 0],
-                    smooth: true,
+                    data: Array(7).fill(data.calorieGoal || 2000),
                     lineStyle: {
-                        width: 2,
-                        color: this.colorPalette.success
-                    }
-                },
-                {
-                    name: 'Fat',
-                    type: 'line',
-                    data: [0, 0, 0, 0, 0, 0, 0],
-                    smooth: true,
-                    lineStyle: {
-                        width: 2,
-                        color: this.colorPalette.warning
-                    }
+                        color: this.theme.color[2],
+                        type: 'dashed',
+                        width: 2
+                    },
+                    itemStyle: {
+                        color: this.theme.color[2]
+                    },
+                    symbol: 'none'
                 }
             ],
             animation: true,
-            animationDuration: 2000,
-            animationEasing: 'quadraticOut'
+            animationDuration: 1000,
+            animationEasing: 'cubicOut'
         };
 
         chart.setOption(option);
-        this.charts.nutritionTrend = chart;
+        this.charts.set(containerId, chart);
+
+        // Auto-resize
+        window.addEventListener('resize', () => {
+            chart.resize();
+        });
+
         return chart;
     }
 
-    // Health Tracking Charts
-    createHealthProgressChart() {
-        const container = document.getElementById('healthProgressChart');
-        if (!container) return;
+    // Create health metrics chart
+    createHealthMetricsChart(containerId, data) {
+        if (!this.initialized) {
+            setTimeout(() => this.createHealthMetricsChart(containerId, data), 100);
+            return;
+        }
 
-        const chart = echarts.init(container, 'dark');
-        
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+
+        if (this.charts.has(containerId)) {
+            this.charts.get(containerId).dispose();
+        }
+
+        const chart = echarts.init(container);
+
         const option = {
-            ...this.darkTheme,
             title: {
-                text: 'Health Metrics Progress',
-                textStyle: {
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    color: '#f8fafc'
-                }
+                text: 'Health Metrics Trend',
+                left: 'center',
+                textStyle: this.theme.title.textStyle
             },
             tooltip: {
                 trigger: 'axis',
-                backgroundColor: '#1e293b',
-                borderColor: '#475569',
-                textStyle: {
-                    color: '#f8fafc'
-                }
+                ...this.theme.tooltip
             },
             legend: {
-                data: ['Weight (lbs)', 'Energy Level', 'Sleep Hours', 'Exercise (min)'],
-                top: 30,
-                textStyle: {
-                    color: '#cbd5e1'
-                }
+                data: ['Weight', 'Body Fat %', 'Muscle Mass'],
+                top: 40,
+                textStyle: this.theme.legend.textStyle
             },
             grid: {
                 left: '3%',
                 right: '4%',
                 bottom: '3%',
-                containLabel: true,
-                borderColor: '#475569'
+                containLabel: true
             },
             xAxis: {
                 type: 'category',
-                data: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                axisLine: {
-                    lineStyle: {
-                        color: '#475569'
-                    }
-                },
-                axisLabel: {
-                    color: '#cbd5e1'
-                }
+                boundaryGap: false,
+                data: data.dates || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                ...this.theme.categoryAxis
             },
-            yAxis: [
-                {
-                    type: 'value',
-                    name: 'Weight (lbs)',
-                    position: 'left',
-                    axisLine: {
-                        lineStyle: {
-                            color: '#475569'
-                        }
-                    },
-                    axisLabel: {
-                        color: '#cbd5e1'
-                    },
-                    splitLine: {
-                        lineStyle: {
-                            color: '#334155'
-                        }
-                    }
-                },
-                {
-                    type: 'value',
-                    name: 'Score/Minutes',
-                    position: 'right',
-                    axisLine: {
-                        lineStyle: {
-                            color: '#475569'
-                        }
-                    },
-                    axisLabel: {
-                        color: '#cbd5e1'
-                    },
-                    splitLine: {
-                        show: false
-                    }
-                }
-            ],
+            yAxis: {
+                type: 'value',
+                ...this.theme.valueAxis
+            },
             series: [
                 {
-                    name: 'Weight (lbs)',
+                    name: 'Weight',
                     type: 'line',
-                    yAxisIndex: 0,
-                    data: [],
-                    lineStyle: {
-                        width: 3,
-                        color: this.colorPalette.danger
-                    },
+                    stack: 'Total',
+                    data: data.weight || [70, 69.5, 69.2, 68.8],
                     smooth: true,
-                    markLine: {
-                        data: [
-                            { type: 'average', name: 'Average' }
-                        ]
-                    }
+                    lineStyle: { color: this.theme.color[0] },
+                    itemStyle: { color: this.theme.color[0] }
                 },
                 {
-                    name: 'Energy Level',
+                    name: 'Body Fat %',
                     type: 'line',
-                    yAxisIndex: 1,
-                    data: [],
-                    lineStyle: {
-                        color: this.colorPalette.warning
-                    },
-                    smooth: true
+                    stack: 'Total',
+                    data: data.bodyFat || [15.2, 14.8, 14.5, 14.1],
+                    smooth: true,
+                    lineStyle: { color: this.theme.color[1] },
+                    itemStyle: { color: this.theme.color[1] }
                 },
                 {
-                    name: 'Sleep Hours',
+                    name: 'Muscle Mass',
                     type: 'line',
-                    yAxisIndex: 1,
-                    data: [],
-                    lineStyle: {
-                        color: this.colorPalette.info
-                    },
-                    smooth: true
+                    stack: 'Total',
+                    data: data.muscleMass || [32.1, 32.3, 32.5, 32.8],
+                    smooth: true,
+                    lineStyle: { color: this.theme.color[2] },
+                    itemStyle: { color: this.theme.color[2] }
+                }
+            ]
+        };
+
+        chart.setOption(option);
+        this.charts.set(containerId, chart);
+
+        window.addEventListener('resize', () => {
+            chart.resize();
+        });
+
+        return chart;
+    }
+
+    // Create recipe analytics chart
+    createRecipeAnalyticsChart(containerId, data) {
+        if (!this.initialized) {
+            setTimeout(() => this.createRecipeAnalyticsChart(containerId, data), 100);
+            return;
+        }
+
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+
+        if (this.charts.has(containerId)) {
+            this.charts.get(containerId).dispose();
+        }
+
+        const chart = echarts.init(container);
+
+        const option = {
+            title: {
+                text: 'Recipe Performance Analytics',
+                left: 'center',
+                textStyle: this.theme.title.textStyle
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
                 },
+                ...this.theme.tooltip
+            },
+            legend: {
+                data: ['Accuracy %', 'User Satisfaction'],
+                top: 40,
+                textStyle: this.theme.legend.textStyle
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['K-Means', 'Collaborative', 'Decision Tree', 'Genetic Algorithm'],
+                ...this.theme.categoryAxis
+            },
+            yAxis: {
+                type: 'value',
+                max: 100,
+                ...this.theme.valueAxis
+            },
+            series: [
                 {
-                    name: 'Exercise (min)',
+                    name: 'Accuracy %',
                     type: 'bar',
-                    yAxisIndex: 1,
-                    data: [],
+                    data: data.accuracy || [78, 85, 82, 88],
                     itemStyle: {
-                        color: this.createGradient(chart, [this.colorPalette.success, this.colorPalette.accent])
-                    },
-                    opacity: 0.8
-                }
-            ],
-            animation: true,
-            animationDuration: 2000
-        };
-
-        chart.setOption(option);
-        this.charts.healthProgress = chart;
-        return chart;
-    }
-
-    // Weekly Nutrition Balance Radar Chart
-    createWeeklyNutritionChart() {
-        const container = document.getElementById('weeklyNutritionChart');
-        if (!container) return;
-
-        const chart = echarts.init(container, 'dark');
-        
-        const option = {
-            ...this.darkTheme,
-            title: {
-                text: 'Weekly Nutrition Balance',
-                textStyle: {
-                    fontSize: 14,
-                    fontWeight: 'bold',
-                    color: '#f8fafc'
-                }
-            },
-            tooltip: {
-                trigger: 'item',
-                backgroundColor: '#1e293b',
-                borderColor: '#475569',
-                textStyle: {
-                    color: '#f8fafc'
-                }
-            },
-            radar: {
-                indicator: [
-                    { name: 'Protein', max: 100 },
-                    { name: 'Carbs', max: 100 },
-                    { name: 'Fat', max: 100 },
-                    { name: 'Fiber', max: 100 },
-                    { name: 'Vitamins', max: 100 },
-                    { name: 'Minerals', max: 100 }
-                ],
-                shape: 'polygon',
-                splitNumber: 4,
-                axisName: {
-                    color: '#cbd5e1',
-                    fontSize: 12
-                },
-                splitLine: {
-                    lineStyle: {
-                        color: '#334155'
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: this.theme.color[0] },
+                            { offset: 1, color: this.theme.color[0] + '60' }
+                        ])
                     }
                 },
-                splitArea: {
-                    show: true,
-                    areaStyle: {
-                        color: ['rgba(99, 102, 241, 0.05)', 'rgba(99, 102, 241, 0.1)']
-                    }
-                },
-                axisLine: {
-                    lineStyle: {
-                        color: '#475569'
-                    }
-                }
-            },
-            series: [
                 {
-                    name: 'Nutrition Balance',
-                    type: 'radar',
-                    data: [
-                        {
-                            value: [0, 0, 0, 0, 0, 0],
-                            name: 'Current Week',
-                            areaStyle: {
-                                color: this.colorPalette.primary + '30'
-                            },
-                            lineStyle: {
-                                color: this.colorPalette.primary,
-                                width: 2
-                            },
-                            itemStyle: {
-                                color: this.colorPalette.primary
-                            }
-                        },
-                        {
-                            value: [80, 85, 85, 85, 80, 85],
-                            name: 'Target',
-                            areaStyle: {
-                                color: this.colorPalette.success + '20'
-                            },
-                            lineStyle: {
-                                color: this.colorPalette.success,
-                                width: 1,
-                                type: 'dashed'
-                            },
-                            itemStyle: {
-                                color: this.colorPalette.success
-                            }
-                        }
-                    ]
+                    name: 'User Satisfaction',
+                    type: 'bar',
+                    data: data.satisfaction || [72, 80, 77, 84],
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: this.theme.color[1] },
+                            { offset: 1, color: this.theme.color[1] + '60' }
+                        ])
+                    }
                 }
             ]
         };
 
         chart.setOption(option);
-        this.charts.weeklyNutrition = chart;
+        this.charts.set(containerId, chart);
+
+        window.addEventListener('resize', () => {
+            chart.resize();
+        });
+
         return chart;
     }
 
-    // Shopping Summary Chart
-    createShoppingSummaryChart() {
-        const container = document.getElementById('shoppingSummaryChart');
-        if (!container) return;
+    // Create meal plan optimization chart
+    createMealPlanChart(containerId, data) {
+        if (!this.initialized) {
+            setTimeout(() => this.createMealPlanChart(containerId, data), 100);
+            return;
+        }
 
-        const chart = echarts.init(container, 'dark');
-        
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+
+        if (this.charts.has(containerId)) {
+            this.charts.get(containerId).dispose();
+        }
+
+        const chart = echarts.init(container);
+
         const option = {
-            ...this.darkTheme,
             title: {
-                text: 'Shopping Summary',
-                textStyle: {
-                    fontSize: 14,
-                    fontWeight: 'bold',
-                    color: '#f8fafc'
-                }
+                text: 'Meal Plan Optimization',
+                subtext: 'Nutrition vs Cost vs Time',
+                left: 'center',
+                textStyle: this.theme.title.textStyle
             },
             tooltip: {
                 trigger: 'item',
-                backgroundColor: '#1e293b',
-                borderColor: '#475569',
-                textStyle: {
-                    color: '#f8fafc'
+                formatter: (params) => {
+                    return `${params.data.name}<br/>
+                            Nutrition Score: ${params.data.value[0]}<br/>
+                            Cost: $${params.data.value[1]}<br/>
+                            Time: ${params.data.value[2]} min`;
                 },
-                formatter: '{a} <br/>{b}: ${c} ({d}%)'
+                ...this.theme.tooltip
+            },
+            legend: {
+                data: ['Optimized Plans', 'Alternative Plans'],
+                top: 60,
+                textStyle: this.theme.legend.textStyle
+            },
+            xAxis: {
+                type: 'value',
+                name: 'Nutrition Score',
+                nameLocation: 'middle',
+                nameGap: 30,
+                ...this.theme.valueAxis
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Cost ($)',
+                nameLocation: 'middle',
+                nameGap: 40,
+                ...this.theme.valueAxis
             },
             series: [
                 {
-                    name: 'Shopping Categories',
-                    type: 'pie',
-                    radius: '70%',
-                    data: [
-                        { 
-                            value: 45, 
-                            name: 'Produce',
-                            itemStyle: { 
-                                color: this.createGradient(chart, [this.colorPalette.success, this.colorPalette.accent])
-                            }
-                        },
-                        { 
-                            value: 35, 
-                            name: 'Proteins',
-                            itemStyle: { 
-                                color: this.createGradient(chart, [this.colorPalette.info, this.colorPalette.primary])
-                            }
-                        },
-                        { 
-                            value: 25, 
-                            name: 'Pantry',
-                            itemStyle: { 
-                                color: this.createGradient(chart, [this.colorPalette.warning, this.colorPalette.danger])
-                            }
-                        },
-                        { 
-                            value: 15, 
-                            name: 'Dairy',
-                            itemStyle: { 
-                                color: this.createGradient(chart, [this.colorPalette.secondary, '#d946ef'])
-                            }
-                        }
+                    name: 'Optimized Plans',
+                    type: 'scatter',
+                    data: data.optimized || [
+                        { name: 'Plan A', value: [85, 35, 120] },
+                        { name: 'Plan B', value: [90, 42, 105] },
+                        { name: 'Plan C', value: [88, 38, 110] }
                     ],
+                    symbolSize: (data) => data[2] / 3, // Size based on time
+                    itemStyle: {
+                        color: this.theme.color[0],
+                        opacity: 0.8
+                    },
                     emphasis: {
                         itemStyle: {
-                            shadowBlur: 10,
-                            shadowOffsetX: 0,
-                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            color: this.theme.color[0]
                         }
-                    },
-                    label: {
-                        color: '#f8fafc',
-                        formatter: '{b}\n${c}'
                     }
-                }
-            ]
-        };
-
-        chart.setOption(option);
-        this.charts.shoppingSummary = chart;
-        return chart;
-    }
-
-    // Update chart data methods
-    updateNutritionChart(data) {
-        if (this.charts.nutritionPie) {
-            const option = {
-                series: [{
-                    data: [
-                        { 
-                            value: data.protein || 0, 
-                            name: 'Protein', 
-                            calories: (data.protein || 0) * 4 
-                        },
-                        { 
-                            value: data.carbs || 0, 
-                            name: 'Carbs', 
-                            calories: (data.carbs || 0) * 4 
-                        },
-                        { 
-                            value: data.fat || 0, 
-                            name: 'Fat', 
-                            calories: (data.fat || 0) * 9 
-                        },
-                        { 
-                            value: data.fiber || 0, 
-                            name: 'Fiber', 
-                            calories: 0 
-                        }
-                    ]
-                }]
-            };
-            this.charts.nutritionPie.setOption(option);
-        }
-    }
-
-    updateTrendChart(weeklyData) {
-        if (this.charts.nutritionTrend && weeklyData) {
-            const option = {
-                series: [
-                    {
-                        data: weeklyData.calories || [0, 0, 0, 0, 0, 0, 0]
-                    },
-                    {
-                        data: weeklyData.protein || [0, 0, 0, 0, 0, 0, 0]
-                    },
-                    {
-                        data: weeklyData.carbs || [0, 0, 0, 0, 0, 0, 0]
-                    },
-                    {
-                        data: weeklyData.fat || [0, 0, 0, 0, 0, 0, 0]
-                    }
-                ]
-            };
-            this.charts.nutritionTrend.setOption(option);
-        }
-    }
-
-    updateHealthChart(data) {
-        if (this.charts.healthProgress && data) {
-            const option = {
-                xAxis: {
-                    data: data.dates || ['Week 1', 'Week 2', 'Week 3', 'Week 4']
                 },
-                series: [
-                    {
-                        data: data.weight || []
-                    },
-                    {
-                        data: data.energy || []
-                    },
-                    {
-                        data: data.sleep || []
-                    },
-                    {
-                        data: data.exercise || []
-                    }
-                ]
-            };
-            this.charts.healthProgress.setOption(option);
-        }
-    }
-
-    updateWeeklyNutritionChart(data) {
-        if (this.charts.weeklyNutrition && data) {
-            const option = {
-                series: [{
-                    data: [
-                        {
-                            value: data.current || [0, 0, 0, 0, 0, 0],
-                            name: 'Current Week'
-                        },
-                        {
-                            value: [80, 85, 85, 85, 80, 85],
-                            name: 'Target'
-                        }
-                    ]
-                }]
-            };
-            this.charts.weeklyNutrition.setOption(option);
-        }
-    }
-
-    // Create Recipe Nutrition Analysis Chart
-    createRecipeNutritionChart() {
-        const container = document.getElementById('recipeNutritionChart');
-        if (!container) return;
-
-        const chart = echarts.init(container, 'dark');
-        
-        const option = {
-            ...this.darkTheme,
-            tooltip: {
-                trigger: 'item',
-                backgroundColor: '#1e293b',
-                borderColor: '#475569',
-                textStyle: {
-                    color: '#f8fafc'
-                },
-                formatter: '{a} <br/>{b}: {c}g ({d}%)'
-            },
-            series: [
                 {
-                    name: 'Recipe Nutrition',
-                    type: 'pie',
-                    radius: ['40%', '70%'],
-                    center: ['50%', '60%'],
-                    data: [
-                        { 
-                            value: 0, 
-                            name: 'Protein', 
-                            itemStyle: { color: this.colorPalette.info } 
-                        },
-                        { 
-                            value: 0, 
-                            name: 'Carbs', 
-                            itemStyle: { color: this.colorPalette.success } 
-                        },
-                        { 
-                            value: 0, 
-                            name: 'Fat', 
-                            itemStyle: { color: this.colorPalette.warning } 
-                        },
-                        { 
-                            value: 0, 
-                            name: 'Fiber', 
-                            itemStyle: { color: this.colorPalette.secondary } 
-                        }
+                    name: 'Alternative Plans',
+                    type: 'scatter',
+                    data: data.alternatives || [
+                        { name: 'Alt 1', value: [70, 25, 90] },
+                        { name: 'Alt 2', value: [75, 30, 100] },
+                        { name: 'Alt 3', value: [65, 20, 85] }
                     ],
-                    emphasis: {
-                        itemStyle: {
-                            shadowBlur: 10,
-                            shadowOffsetX: 0,
-                            shadowColor: 'rgba(0, 0, 0, 0.5)'
-                        }
-                    },
-                    label: {
-                        formatter: '{b}\n{c}g',
-                        color: '#f8fafc'
+                    symbolSize: (data) => data[2] / 3,
+                    itemStyle: {
+                        color: this.theme.color[3],
+                        opacity: 0.6
                     }
                 }
             ]
         };
 
         chart.setOption(option);
-        this.charts.recipeNutrition = chart;
+        this.charts.set(containerId, chart);
+
+        window.addEventListener('resize', () => {
+            chart.resize();
+        });
+
         return chart;
     }
 
-    updateRecipeNutritionChart(nutrition) {
-        if (this.charts.recipeNutrition && nutrition) {
-            const option = {
-                series: [{
-                    data: [
-                        { value: nutrition.protein || 0, name: 'Protein' },
-                        { value: nutrition.carbs || 0, name: 'Carbs' },
-                        { value: nutrition.fat || 0, name: 'Fat' },
-                        { value: nutrition.fiber || 0, name: 'Fiber' }
-                    ]
-                }]
-            };
-            this.charts.recipeNutrition.setOption(option);
-        }
-    }
-
-    // Utility methods
-    resizeAll() {
-        Object.values(this.charts).forEach(chart => {
-            if (chart && typeof chart.resize === 'function') {
-                setTimeout(() => chart.resize(), 100);
+    // Update chart data
+    updateChart(containerId, newData) {
+        const chart = this.charts.get(containerId);
+        if (chart) {
+            const option = chart.getOption();
+            // Update series data
+            if (newData.series) {
+                option.series = newData.series;
             }
+            if (newData.xAxis) {
+                option.xAxis.data = newData.xAxis;
+            }
+            chart.setOption(option, true);
+        }
+    }
+
+    // Resize all charts
+    resizeAllCharts() {
+        this.charts.forEach(chart => {
+            chart.resize();
         });
     }
 
-    dispose() {
-        Object.values(this.charts).forEach(chart => {
-            if (chart && typeof chart.dispose === 'function') {
-                chart.dispose();
-            }
+    // Dispose chart
+    disposeChart(containerId) {
+        const chart = this.charts.get(containerId);
+        if (chart) {
+            chart.dispose();
+            this.charts.delete(containerId);
+        }
+    }
+
+    // Dispose all charts
+    disposeAllCharts() {
+        this.charts.forEach((chart, containerId) => {
+            chart.dispose();
         });
-        this.charts = {};
+        this.charts.clear();
     }
 
     // Get chart instance
-    getChart(name) {
-        return this.charts[name];
+    getChart(containerId) {
+        return this.charts.get(containerId);
     }
 
-    // Set chart theme
-    setTheme(themeName) {
-        Object.entries(this.charts).forEach(([name, chart]) => {
-            if (chart) {
-                // Recreate chart with new theme
-                const container = chart.getDom();
-                chart.dispose();
-                this.charts[name] = echarts.init(container, themeName);
-            }
-        });
+    // Check if chart exists
+    hasChart(containerId) {
+        return this.charts.has(containerId);
+    }
+
+    // Export chart as image
+    exportChart(containerId, format = 'png') {
+        const chart = this.charts.get(containerId);
+        if (chart) {
+            return chart.getDataURL({
+                type: format,
+                pixelRatio: 2,
+                backgroundColor: '#1e293b'
+            });
+        }
+        return null;
+    }
+
+    // Create responsive chart wrapper
+    createResponsiveChart(containerId, chartType, data, options = {}) {
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+
+        // Add responsive container class
+        container.classList.add('chart-responsive');
+
+        let chart;
+        switch (chartType) {
+            case 'nutrition':
+                chart = this.createNutritionChart(containerId, data);
+                break;
+            case 'weekly':
+                chart = this.createWeeklyChart(containerId, data);
+                break;
+            case 'health':
+                chart = this.createHealthMetricsChart(containerId, data);
+                break;
+            case 'analytics':
+                chart = this.createRecipeAnalyticsChart(containerId, data);
+                break;
+            case 'mealplan':
+                chart = this.createMealPlanChart(containerId, data);
+                break;
+            default:
+                console.error(`Unknown chart type: ${chartType}`);
+                return null;
+        }
+
+        // Add intersection observer for lazy loading
+        if (options.lazyLoad) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && chart) {
+                        chart.resize();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+            observer.observe(container);
+        }
+
+        return chart;
     }
 }
 
@@ -903,40 +726,41 @@ const chartManager = new ChartManager();
 // Export for global use
 window.chartManager = chartManager;
 
-// Helper functions for easy chart creation
-window.initNutritionCharts = function() {
-    chartManager.createNutritionPieChart();
-    chartManager.createNutritionTrendChart();
-};
+// Add CSS for responsive charts
+const chartCSS = `
+.chart-responsive {
+    width: 100%;
+    height: 400px;
+    min-height: 300px;
+}
 
-window.initHealthCharts = function() {
-    chartManager.createHealthProgressChart();
-};
-
-window.initMealPlanningCharts = function() {
-    chartManager.createWeeklyNutritionChart();
-};
-
-window.initShoppingCharts = function() {
-    chartManager.createShoppingSummaryChart();
-};
-
-// Update functions for real-time data
-window.updateNutritionDisplay = function(nutritionData) {
-    if (nutritionData) {
-        chartManager.updateNutritionChart(nutritionData);
-        chartManager.updateTrendChart(nutritionData.weekly);
+@media (max-width: 768px) {
+    .chart-responsive {
+        height: 300px;
+        min-height: 250px;
     }
-};
+}
 
-window.updateHealthDisplay = function(healthData) {
-    if (healthData) {
-        chartManager.updateHealthChart(healthData);
-    }
-};
+.chart-container {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--border-color);
+}
 
-window.updateWeeklyNutrition = function(data) {
-    chartManager.updateWeeklyNutritionChart(data);
-};
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    color: var(--text-secondary);
+}
+`;
 
-console.log('Charts manager loaded with dark theme');
+// Inject CSS
+const styleSheet = document.createElement('style');
+styleSheet.textContent = chartCSS;
+document.head.appendChild(styleSheet);
+
+console.log('Chart Manager loaded successfully');

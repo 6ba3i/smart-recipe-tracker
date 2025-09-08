@@ -1,592 +1,629 @@
-/**
- * Nutrition Tracker with Spoonacular API Integration
- * Handles nutrition logging, tracking, and analysis
- */
-
+// Nutrition Tracker with AI Insights
 class NutritionTracker {
     constructor() {
-        this.dailyGoals = {
+        this.dailyLogs = [];
+        this.nutritionGoals = {
             calories: 2000,
             protein: 150,
-            carbs: 250,
-            fat: 70,
+            carbs: 225,
+            fat: 67,
             fiber: 25,
             sugar: 50
         };
-        
-        this.currentIntake = {
-            calories: 0,
-            protein: 0,
-            carbs: 0,
-            fat: 0,
-            fiber: 0,
-            sugar: 0
+        this.foodDatabase = this.loadFoodDatabase();
+        this.aiInsights = {
+            trends: [],
+            predictions: [],
+            recommendations: []
         };
         
-        this.mealHistory = [];
-        this.listeners = [];
-        this.isInitialized = false;
-        
-        this.init();
+        this.initializeTracker();
     }
 
-    async init() {
-        try {
-            // Load user preferences and goals
-            await this.loadUserGoals();
-            
-            // Load today's nutrition data
-            await this.loadTodaysNutrition();
-            
-            // Set up real-time listeners
-            this.setupRealtimeListeners();
-            
-            this.isInitialized = true;
-            console.log('Nutrition tracker initialized');
-        } catch (error) {
-            console.error('Error initializing nutrition tracker:', error);
-        }
+    initializeTracker() {
+        this.loadUserGoals();
+        this.loadTodaysLogs();
+        this.setupFoodSearch();
+        this.setupEventListeners();
+        console.log('Nutrition Tracker initialized');
     }
 
     async loadUserGoals() {
         try {
-            if (window.firebaseManager && currentUser) {
-                const preferences = await firebaseManager.getUserPreferences();
-                
-                if (preferences.dailyCalories) {
-                    this.dailyGoals.calories = preferences.dailyCalories;
-                }
-                if (preferences.dailyProtein) {
-                    this.dailyGoals.protein = preferences.dailyProtein;
-                }
-                if (preferences.dailyCarbs) {
-                    this.dailyGoals.carbs = preferences.dailyCarbs;
-                }
-                if (preferences.dailyFat) {
-                    this.dailyGoals.fat = preferences.dailyFat;
+            if (window.firebaseConfig?.helper) {
+                const saved = await window.firebaseConfig.helper.getUserData('nutritionGoals');
+                if (saved) {
+                    this.nutritionGoals = { ...this.nutritionGoals, ...saved };
                 }
             }
         } catch (error) {
-            console.error('Error loading user goals:', error);
+            console.error('Error loading nutrition goals:', error);
         }
     }
 
-    async loadTodaysNutrition() {
+    async loadTodaysLogs() {
         try {
-            if (window.firebaseManager && currentUser) {
+            if (window.firebaseConfig?.helper) {
+                const logs = await window.firebaseConfig.helper.getUserDocuments('nutritionLogs');
                 const today = new Date().toISOString().split('T')[0];
-                const summary = await firebaseManager.getDailyNutritionSummary(today);
-                
-                if (summary && summary.totals) {
-                    this.currentIntake = { ...summary.totals };
-                    this.mealHistory = summary.logs || [];
-                    this.updateNutritionDisplays();
-                }
+                this.dailyLogs = logs.filter(log => log.date === today) || [];
+                this.updateNutritionDisplay();
             }
         } catch (error) {
-            console.error('Error loading today\'s nutrition:', error);
+            console.error('Error loading nutrition logs:', error);
         }
     }
 
-    setupRealtimeListeners() {
-        if (window.firebaseManager && currentUser) {
-            // Listen for nutrition updates
-            const unsubscribe = firebaseManager.listenToNutritionUpdates((logs) => {
-                this.updateFromFirebaseLogs(logs);
+    loadFoodDatabase() {
+        return [
+            {
+                id: 1,
+                name: "Chicken Breast (100g)",
+                calories: 165,
+                protein: 31,
+                carbs: 0,
+                fat: 3.6,
+                fiber: 0,
+                sugar: 0,
+                category: "protein",
+                searchTerms: ["chicken", "breast", "poultry"]
+            },
+            {
+                id: 2,
+                name: "Brown Rice (1 cup cooked)",
+                calories: 216,
+                protein: 5,
+                carbs: 45,
+                fat: 1.8,
+                fiber: 4,
+                sugar: 0,
+                category: "carbs",
+                searchTerms: ["rice", "brown rice", "grain"]
+            },
+            {
+                id: 3,
+                name: "Broccoli (1 cup)",
+                calories: 25,
+                protein: 3,
+                carbs: 5,
+                fat: 0.3,
+                fiber: 2.3,
+                sugar: 1.5,
+                category: "vegetables",
+                searchTerms: ["broccoli", "vegetable", "green"]
+            },
+            {
+                id: 4,
+                name: "Salmon (100g)",
+                calories: 208,
+                protein: 25,
+                carbs: 0,
+                fat: 12,
+                fiber: 0,
+                sugar: 0,
+                category: "protein",
+                searchTerms: ["salmon", "fish", "omega"]
+            },
+            {
+                id: 5,
+                name: "Greek Yogurt (1 cup)",
+                calories: 130,
+                protein: 23,
+                carbs: 9,
+                fat: 0,
+                fiber: 0,
+                sugar: 9,
+                category: "dairy",
+                searchTerms: ["yogurt", "greek", "dairy"]
+            },
+            {
+                id: 6,
+                name: "Avocado (1 medium)",
+                calories: 234,
+                protein: 3,
+                carbs: 12,
+                fat: 21,
+                fiber: 10,
+                sugar: 1,
+                category: "healthy fats",
+                searchTerms: ["avocado", "healthy fat"]
+            },
+            {
+                id: 7,
+                name: "Quinoa (1 cup cooked)",
+                calories: 222,
+                protein: 8,
+                carbs: 39,
+                fat: 4,
+                fiber: 5,
+                sugar: 2,
+                category: "carbs",
+                searchTerms: ["quinoa", "grain", "protein"]
+            },
+            {
+                id: 8,
+                name: "Almonds (1 oz)",
+                calories: 161,
+                protein: 6,
+                carbs: 6,
+                fat: 14,
+                fiber: 4,
+                sugar: 1,
+                category: "nuts",
+                searchTerms: ["almonds", "nuts", "snack"]
+            },
+            {
+                id: 9,
+                name: "Sweet Potato (1 medium)",
+                calories: 112,
+                protein: 2,
+                carbs: 26,
+                fat: 0.1,
+                fiber: 4,
+                sugar: 5,
+                category: "carbs",
+                searchTerms: ["sweet potato", "potato", "carbs"]
+            },
+            {
+                id: 10,
+                name: "Spinach (1 cup)",
+                calories: 7,
+                protein: 1,
+                carbs: 1,
+                fat: 0.1,
+                fiber: 0.7,
+                sugar: 0.1,
+                category: "vegetables",
+                searchTerms: ["spinach", "leafy", "green"]
+            },
+            {
+                id: 11,
+                name: "Egg (1 large)",
+                calories: 70,
+                protein: 6,
+                carbs: 0.6,
+                fat: 5,
+                fiber: 0,
+                sugar: 0.6,
+                category: "protein",
+                searchTerms: ["egg", "protein", "breakfast"]
+            },
+            {
+                id: 12,
+                name: "Banana (1 medium)",
+                calories: 105,
+                protein: 1.3,
+                carbs: 27,
+                fat: 0.4,
+                fiber: 3,
+                sugar: 14,
+                category: "fruits",
+                searchTerms: ["banana", "fruit", "potassium"]
+            }
+        ];
+    }
+
+    setupFoodSearch() {
+        const searchInput = document.getElementById('foodSearch');
+        if (searchInput) {
+            // Create autocomplete dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'food-search-dropdown';
+            dropdown.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                max-height: 200px;
+                overflow-y: auto;
+                background: var(--bg-tertiary);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                z-index: 1000;
+                display: none;
+            `;
+            
+            searchInput.parentNode.style.position = 'relative';
+            searchInput.parentNode.appendChild(dropdown);
+            
+            searchInput.addEventListener('input', (e) => {
+                this.handleFoodSearch(e.target.value, dropdown);
             });
             
-            if (unsubscribe) {
-                this.listeners.push(unsubscribe);
-            }
+            searchInput.addEventListener('blur', () => {
+                setTimeout(() => dropdown.style.display = 'none', 200);
+            });
         }
     }
 
-    updateFromFirebaseLogs(logs) {
-        // Reset current intake
-        this.currentIntake = {
-            calories: 0,
-            protein: 0,
-            carbs: 0,
-            fat: 0,
-            fiber: 0,
-            sugar: 0
-        };
-        
-        // Sum up today's logs
-        logs.forEach(log => {
-            this.currentIntake.calories += log.calories || 0;
-            this.currentIntake.protein += log.protein || 0;
-            this.currentIntake.carbs += log.carbs || 0;
-            this.currentIntake.fat += log.fat || 0;
-            this.currentIntake.fiber += log.fiber || 0;
-            this.currentIntake.sugar += log.sugar || 0;
-        });
-        
-        this.mealHistory = logs;
-        this.updateNutritionDisplays();
-        
-        // Update charts if available
-        if (window.chartManager) {
-            window.chartManager.updateNutritionChart(this.currentIntake);
+    handleFoodSearch(query, dropdown) {
+        if (query.length < 2) {
+            dropdown.style.display = 'none';
+            return;
         }
+
+        const results = this.searchFood(query);
+        this.displaySearchResults(results, dropdown);
     }
 
-    async searchFood(query) {
-        try {
-            if (!window.spoonacularAPI) {
-                throw new Error('Spoonacular API not available');
-            }
+    searchFood(query) {
+        const lowercaseQuery = query.toLowerCase();
+        return this.foodDatabase.filter(food => 
+            food.name.toLowerCase().includes(lowercaseQuery) ||
+            food.searchTerms.some(term => term.includes(lowercaseQuery))
+        ).slice(0, 5);
+    }
+
+    displaySearchResults(results, dropdown) {
+        if (results.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        dropdown.innerHTML = results.map(food => `
+            <div class="food-search-item" 
+                 style="padding: 0.75rem; cursor: pointer; border-bottom: 1px solid var(--border-color);"
+                 onclick="nutritionTracker.selectFood(${food.id})">
+                <div style="font-weight: 600; color: var(--text-primary);">${food.name}</div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                    ${food.calories} cal | ${food.protein}g protein | ${food.carbs}g carbs
+                </div>
+            </div>
+        `).join('');
+
+        dropdown.style.display = 'block';
+    }
+
+    selectFood(foodId) {
+        const food = this.foodDatabase.find(f => f.id === foodId);
+        if (food) {
+            document.getElementById('foodSearch').value = food.name;
+            document.querySelector('.food-search-dropdown').style.display = 'none';
             
-            const results = await spoonacularAPI.searchFood(query, 10);
-            return results.map(food => ({
-                id: food.id,
-                name: food.name,
-                image: food.image,
-                score: this.calculateFoodScore(food)
-            })).sort((a, b) => b.score - a.score);
-        } catch (error) {
-            console.error('Error searching food:', error);
-            return this.fallbackFoodSearch(query);
+            // Pre-fill nutrition values
+            this.fillNutritionForm(food);
         }
     }
 
-    calculateFoodScore(food) {
-        // Simple scoring based on name relevance
-        let score = 50;
-        
-        // Boost score for common healthy foods
-        const healthyTerms = ['vegetable', 'fruit', 'lean', 'whole', 'organic', 'fresh'];
-        healthyTerms.forEach(term => {
-            if (food.name.toLowerCase().includes(term)) {
-                score += 10;
+    fillNutritionForm(food) {
+        const fields = ['calories', 'protein', 'carbs', 'fat'];
+        fields.forEach(field => {
+            const input = document.getElementById(field);
+            if (input) {
+                input.value = food[field] || 0;
             }
         });
-        
-        return score;
     }
 
-    fallbackFoodSearch(query) {
-        // Basic fallback food database for when API is not available
-        const basicFoods = [
-            { id: 'chicken_breast', name: 'Chicken Breast', image: '' },
-            { id: 'salmon', name: 'Salmon', image: '' },
-            { id: 'eggs', name: 'Eggs', image: '' },
-            { id: 'quinoa', name: 'Quinoa', image: '' },
-            { id: 'brown_rice', name: 'Brown Rice', image: '' },
-            { id: 'spinach', name: 'Spinach', image: '' },
-            { id: 'broccoli', name: 'Broccoli', image: '' },
-            { id: 'avocado', name: 'Avocado', image: '' },
-            { id: 'banana', name: 'Banana', image: '' },
-            { id: 'oats', name: 'Oats', image: '' }
-        ];
-        
-        return basicFoods.filter(food => 
-            food.name.toLowerCase().includes(query.toLowerCase())
-        ).map(food => ({ ...food, score: 50 }));
+    setupEventListeners() {
+        // Quick log buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('quick-log-btn')) {
+                const foodId = parseInt(e.target.dataset.foodId);
+                this.quickLogFood(foodId);
+            }
+        });
+
+        // Goal adjustment
+        const goalInputs = document.querySelectorAll('.goal-input');
+        goalInputs.forEach(input => {
+            input.addEventListener('change', () => {
+                this.updateGoals();
+            });
+        });
     }
 
-    async getFoodNutrition(foodId, servings = 1) {
+    async logFood(foodData) {
         try {
-            if (!window.spoonacularAPI) {
-                throw new Error('Spoonacular API not available');
-            }
-            
-            const nutrition = await spoonacularAPI.getFoodNutrition(foodId, servings);
-            if (nutrition) {
-                return {
-                    id: nutrition.id,
-                    name: nutrition.name,
-                    servings: servings,
-                    calories: nutrition.calories,
-                    protein: nutrition.protein,
-                    carbs: nutrition.carbs,
-                    fat: nutrition.fat,
-                    fiber: nutrition.fiber,
-                    sugar: nutrition.sugar,
-                    sodium: nutrition.sodium
-                };
-            }
-        } catch (error) {
-            console.error('Error getting food nutrition:', error);
-        }
-        
-        // Fallback nutrition estimation
-        return this.estimateNutrition(foodId, servings);
-    }
-
-    estimateNutrition(foodId, servings) {
-        // Basic nutrition estimates for common foods
-        const nutritionEstimates = {
-            'chicken_breast': { calories: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0, sugar: 0 },
-            'salmon': { calories: 208, protein: 25, carbs: 0, fat: 12, fiber: 0, sugar: 0 },
-            'eggs': { calories: 78, protein: 6, carbs: 0.6, fat: 5, fiber: 0, sugar: 0.6 },
-            'quinoa': { calories: 120, protein: 4.4, carbs: 22, fat: 1.9, fiber: 2.8, sugar: 0.9 },
-            'brown_rice': { calories: 112, protein: 2.6, carbs: 23, fat: 0.9, fiber: 1.8, sugar: 0.4 },
-            'spinach': { calories: 23, protein: 2.9, carbs: 3.6, fat: 0.4, fiber: 2.2, sugar: 0.4 },
-            'broccoli': { calories: 34, protein: 2.8, carbs: 7, fat: 0.4, fiber: 2.6, sugar: 1.5 },
-            'avocado': { calories: 160, protein: 2, carbs: 9, fat: 15, fiber: 7, sugar: 0.7 },
-            'banana': { calories: 89, protein: 1.1, carbs: 23, fat: 0.3, fiber: 2.6, sugar: 12 },
-            'oats': { calories: 389, protein: 16.9, carbs: 66.3, fat: 6.9, fiber: 10.6, sugar: 0.4 }
-        };
-        
-        const baseNutrition = nutritionEstimates[foodId] || { 
-            calories: 200, protein: 10, carbs: 25, fat: 8, fiber: 3, sugar: 5 
-        };
-        
-        return {
-            id: foodId,
-            name: foodId.replace('_', ' '),
-            servings: servings,
-            calories: baseNutrition.calories * servings,
-            protein: baseNutrition.protein * servings,
-            carbs: baseNutrition.carbs * servings,
-            fat: baseNutrition.fat * servings,
-            fiber: baseNutrition.fiber * servings,
-            sugar: baseNutrition.sugar * servings,
-            sodium: 0
-        };
-    }
-
-    async logFood(foodId, foodName, servings = 1) {
-        try {
-            // Get nutrition data
-            const nutritionData = await this.getFoodNutrition(foodId, servings);
-            
-            if (!nutritionData) {
-                throw new Error('Could not get nutrition data');
-            }
-            
-            // Add to current intake
-            this.currentIntake.calories += nutritionData.calories;
-            this.currentIntake.protein += nutritionData.protein;
-            this.currentIntake.carbs += nutritionData.carbs;
-            this.currentIntake.fat += nutritionData.fat;
-            this.currentIntake.fiber += nutritionData.fiber;
-            this.currentIntake.sugar += nutritionData.sugar;
-            
-            // Add to history
             const logEntry = {
-                ...nutritionData,
-                timestamp: new Date(),
-                date: new Date().toISOString().split('T')[0]
+                ...foodData,
+                date: new Date().toISOString().split('T')[0],
+                timestamp: new Date().toISOString(),
+                meal: foodData.meal || 'snack'
             };
-            
-            this.mealHistory.push(logEntry);
-            
+
             // Save to Firebase
-            if (window.firebaseManager && currentUser) {
-                await firebaseManager.logNutrition(logEntry);
+            if (window.firebaseConfig?.helper) {
+                await window.firebaseConfig.helper.addDocument('nutritionLogs', logEntry);
             }
+
+            // Add to local logs
+            this.dailyLogs.push(logEntry);
             
-            // Update displays
-            this.updateNutritionDisplays();
+            // Update display
+            this.updateNutritionDisplay();
+            this.generateAIInsights();
             
-            // Generate insights
-            const insights = this.generateMealInsights(logEntry);
-            
-            return {
-                success: true,
-                data: logEntry,
-                insights: insights
-            };
-            
+            return true;
         } catch (error) {
             console.error('Error logging food:', error);
             throw error;
         }
     }
 
-    generateMealInsights(mealData) {
-        const insights = [];
-        
-        // Protein analysis
-        const proteinRatio = (mealData.protein / mealData.calories) * 100;
-        if (proteinRatio > 25) {
-            insights.push({
-                type: 'positive',
-                message: 'Excellent protein content! This will help with muscle maintenance and satiety.'
-            });
-        } else if (proteinRatio < 10) {
-            insights.push({
-                type: 'suggestion',
-                message: 'Consider adding more protein to this meal for better balance.'
-            });
+    async quickLogFood(foodId) {
+        const food = this.foodDatabase.find(f => f.id === foodId);
+        if (food) {
+            const portion = prompt(`How many servings of ${food.name}?`, '1');
+            if (portion && !isNaN(portion)) {
+                const multiplier = parseFloat(portion);
+                const logData = {
+                    food: food.name,
+                    calories: Math.round(food.calories * multiplier),
+                    protein: Math.round(food.protein * multiplier * 10) / 10,
+                    carbs: Math.round(food.carbs * multiplier * 10) / 10,
+                    fat: Math.round(food.fat * multiplier * 10) / 10,
+                    fiber: Math.round((food.fiber || 0) * multiplier * 10) / 10,
+                    sugar: Math.round((food.sugar || 0) * multiplier * 10) / 10,
+                    servings: multiplier
+                };
+                
+                await this.logFood(logData);
+                this.showSuccess(`Logged ${portion} serving(s) of ${food.name}`);
+            }
         }
-        
-        // Fiber analysis
-        if (mealData.fiber > 8) {
-            insights.push({
-                type: 'positive',
-                message: 'Great fiber intake! This supports digestive health and helps you feel full.'
-            });
-        } else if (mealData.fiber < 3) {
-            insights.push({
-                type: 'suggestion',
-                message: 'Try adding vegetables or whole grains to increase fiber content.'
-            });
-        }
-        
-        // Sugar analysis
-        if (mealData.sugar > 20) {
-            insights.push({
-                type: 'warning',
-                message: 'High sugar content. Consider reducing added sugars when possible.'
-            });
-        }
-        
-        // Daily progress insights
-        const progressInsights = this.analyzeDailyProgress();
-        insights.push(...progressInsights);
-        
-        return insights;
     }
 
-    analyzeDailyProgress() {
-        const insights = [];
-        const calorieProgress = (this.currentIntake.calories / this.dailyGoals.calories) * 100;
-        const proteinProgress = (this.currentIntake.protein / this.dailyGoals.protein) * 100;
+    updateNutritionDisplay() {
+        const totals = this.calculateDailyTotals();
         
-        if (calorieProgress > 90 && proteinProgress < 70) {
-            insights.push({
-                type: 'suggestion',
-                message: 'You\'re close to your calorie goal but low on protein. Focus on lean proteins for remaining meals.'
+        // Update progress bars and numbers
+        this.updateProgressBar('calories', totals.calories, this.nutritionGoals.calories);
+        this.updateProgressBar('protein', totals.protein, this.nutritionGoals.protein);
+        this.updateProgressBar('carbs', totals.carbs, this.nutritionGoals.carbs);
+        this.updateProgressBar('fat', totals.fat, this.nutritionGoals.fat);
+
+        // Update chart if available
+        if (window.chartManager) {
+            window.chartManager.createNutritionChart('dailyNutritionChart', {
+                title: "Today's Nutrition",
+                protein: totals.protein,
+                carbs: totals.carbs,
+                fat: totals.fat
             });
         }
-        
-        if (calorieProgress < 50 && new Date().getHours() > 18) {
-            insights.push({
-                type: 'warning',
-                message: 'You may be under-eating today. Make sure to get adequate nutrition.'
-            });
-        }
-        
-        if (proteinProgress > 100) {
-            insights.push({
-                type: 'positive',
-                message: 'Great job hitting your protein goal!'
-            });
-        }
-        
-        return insights;
+
+        // Update recent logs
+        this.updateRecentLogs();
     }
 
-    calculatePersonalizedGoals(userProfile) {
-        const { weight, height, age, gender, activityLevel, goal } = userProfile;
-        
-        // Calculate BMR using Mifflin-St Jeor Equation
-        let bmr;
-        if (gender === 'male') {
-            bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-        } else {
-            bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-        }
-        
-        // Activity multipliers
-        const activityMultipliers = {
-            sedentary: 1.2,
-            light: 1.375,
-            moderate: 1.55,
-            active: 1.725,
-            veryActive: 1.9
-        };
-        
-        const tdee = bmr * (activityMultipliers[activityLevel] || 1.55);
-        
-        // Adjust based on goal
-        let targetCalories = tdee;
-        if (goal === 'lose') targetCalories *= 0.85;
-        else if (goal === 'gain') targetCalories *= 1.15;
-        
-        // Calculate macronutrient goals
-        const newGoals = {
-            calories: Math.round(targetCalories),
-            protein: Math.round(weight * 2.2), // 2.2g per kg body weight
-            carbs: Math.round(targetCalories * 0.45 / 4), // 45% of calories
-            fat: Math.round(targetCalories * 0.25 / 9), // 25% of calories
-            fiber: Math.round(targetCalories / 1000 * 14), // 14g per 1000 calories
-            sugar: Math.round(targetCalories * 0.1 / 4) // 10% of calories
-        };
-        
-        this.dailyGoals = newGoals;
-        
-        // Save to user preferences
-        if (window.firebaseManager && currentUser) {
-            firebaseManager.updateUserPreferences({
-                dailyCalories: newGoals.calories,
-                dailyProtein: newGoals.protein,
-                dailyCarbs: newGoals.carbs,
-                dailyFat: newGoals.fat
-            });
-        }
-        
-        return newGoals;
+    calculateDailyTotals() {
+        return this.dailyLogs.reduce((totals, log) => {
+            totals.calories += log.calories || 0;
+            totals.protein += log.protein || 0;
+            totals.carbs += log.carbs || 0;
+            totals.fat += log.fat || 0;
+            totals.fiber += log.fiber || 0;
+            totals.sugar += log.sugar || 0;
+            return totals;
+        }, { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 });
     }
 
-    async getWeeklyNutritionTrends() {
+    updateProgressBar(nutrient, current, goal) {
+        const progressBar = document.querySelector(`[data-nutrient="${nutrient}"] .progress-bar`);
+        const progressText = document.querySelector(`[data-nutrient="${nutrient}"] .progress-text`);
+        
+        if (progressBar && progressText) {
+            const percentage = Math.min((current / goal) * 100, 100);
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `${Math.round(current)}/${goal}`;
+            
+            // Color coding
+            if (percentage >= 90) {
+                progressBar.className = 'progress-bar bg-success';
+            } else if (percentage >= 70) {
+                progressBar.className = 'progress-bar bg-warning';
+            } else {
+                progressBar.className = 'progress-bar bg-danger';
+            }
+        }
+    }
+
+    updateRecentLogs() {
+        const container = document.getElementById('recentLogs');
+        if (!container) return;
+
+        const recentLogs = this.dailyLogs.slice(-5).reverse();
+        
+        container.innerHTML = recentLogs.map(log => `
+            <div class="log-item d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div>
+                    <div class="fw-semibold">${log.food}</div>
+                    <small class="text-muted">${new Date(log.timestamp).toLocaleTimeString()}</small>
+                </div>
+                <div class="text-end">
+                    <div class="fw-semibold">${log.calories} cal</div>
+                    <small class="text-muted">${log.protein}g protein</small>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async updateGoals() {
         try {
-            if (!window.firebaseManager || !currentUser) {
-                return null;
-            }
-            
-            const logs = await firebaseManager.getNutritionLogs(7);
-            
-            // Group by day
-            const dailyTotals = {};
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            
-            // Initialize with zeros
-            days.forEach(day => {
-                dailyTotals[day] = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-            });
-            
-            logs.forEach(log => {
-                if (log.timestamp) {
-                    const dayName = days[log.timestamp.getDay()];
-                    dailyTotals[dayName].calories += log.calories || 0;
-                    dailyTotals[dayName].protein += log.protein || 0;
-                    dailyTotals[dayName].carbs += log.carbs || 0;
-                    dailyTotals[dayName].fat += log.fat || 0;
-                }
-            });
-            
-            return {
-                calories: days.map(day => Math.round(dailyTotals[day].calories)),
-                protein: days.map(day => Math.round(dailyTotals[day].protein)),
-                carbs: days.map(day => Math.round(dailyTotals[day].carbs)),
-                fat: days.map(day => Math.round(dailyTotals[day].fat))
+            const newGoals = {
+                calories: parseInt(document.getElementById('calorieGoal')?.value) || this.nutritionGoals.calories,
+                protein: parseInt(document.getElementById('proteinGoal')?.value) || this.nutritionGoals.protein,
+                carbs: parseInt(document.getElementById('carbGoal')?.value) || this.nutritionGoals.carbs,
+                fat: parseInt(document.getElementById('fatGoal')?.value) || this.nutritionGoals.fat
             };
-        } catch (error) {
-            console.error('Error getting weekly trends:', error);
-            return null;
-        }
-    }
 
-    getMealRecommendations(mealType = 'any') {
-        const currentDeficits = this.calculateNutritionalDeficits();
-        const timeOfDay = new Date().getHours();
-        
-        let recommendations = [];
-        
-        if (currentDeficits.protein > 30) {
-            recommendations.push({
-                type: 'protein',
-                message: 'Add protein-rich foods like chicken breast, fish, eggs, or legumes',
-                foods: ['chicken breast', 'salmon', 'eggs', 'greek yogurt', 'tofu']
-            });
-        }
-        
-        if (currentDeficits.fiber > 15) {
-            recommendations.push({
-                type: 'fiber',
-                message: 'Increase fiber with vegetables, fruits, or whole grains',
-                foods: ['broccoli', 'spinach', 'quinoa', 'oats', 'berries']
-            });
-        }
-        
-        if (currentDeficits.calories > 800) {
-            recommendations.push({
-                type: 'energy',
-                message: 'You need more calories to meet your daily goal',
-                foods: ['nuts', 'avocado', 'olive oil', 'whole grains']
-            });
-        }
-        
-        // Time-based recommendations
-        if (timeOfDay < 11) {
-            recommendations.push({
-                type: 'timing',
-                message: 'Great time for a protein and fiber-rich breakfast',
-                foods: ['oats', 'eggs', 'greek yogurt', 'berries']
-            });
-        } else if (timeOfDay > 18) {
-            recommendations.push({
-                type: 'timing',
-                message: 'Evening meals should be lighter and protein-focused',
-                foods: ['salmon', 'vegetables', 'salad', 'lean protein']
-            });
-        }
-        
-        return recommendations;
-    }
+            this.nutritionGoals = { ...this.nutritionGoals, ...newGoals };
 
-    calculateNutritionalDeficits() {
-        return {
-            calories: Math.max(0, this.dailyGoals.calories - this.currentIntake.calories),
-            protein: Math.max(0, this.dailyGoals.protein - this.currentIntake.protein),
-            carbs: Math.max(0, this.dailyGoals.carbs - this.currentIntake.carbs),
-            fat: Math.max(0, this.dailyGoals.fat - this.currentIntake.fat),
-            fiber: Math.max(0, this.dailyGoals.fiber - this.currentIntake.fiber)
-        };
-    }
-
-    updateNutritionDisplays() {
-        // Update progress bars and text
-        this.updateProgressDisplay('calorie', this.currentIntake.calories, this.dailyGoals.calories);
-        this.updateProgressDisplay('protein', this.currentIntake.protein, this.dailyGoals.protein);
-        this.updateProgressDisplay('carb', this.currentIntake.carbs, this.dailyGoals.carbs);
-    }
-
-    updateProgressDisplay(type, current, goal) {
-        const progressElement = document.getElementById(`${type}Progress`);
-        const barElement = document.getElementById(`${type}Bar`);
-        
-        if (progressElement) {
-            const unit = type === 'calorie' ? '' : 'g';
-            progressElement.textContent = `${Math.round(current)}${unit} / ${goal}${unit}`;
-        }
-        
-        if (barElement) {
-            const percentage = Math.min(100, (current / goal) * 100);
-            barElement.style.width = `${percentage}%`;
-            
-            // Update color based on progress
-            const baseClass = barElement.className.split(' ')[0];
-            barElement.className = `${baseClass} ${
-                percentage >= 90 ? 'bg-success' : 
-                percentage >= 70 ? 'bg-warning' : 'bg-danger'
-            }`;
-        }
-    }
-
-    // Reset daily tracking (call at midnight)
-    resetDaily() {
-        this.currentIntake = {
-            calories: 0,
-            protein: 0,
-            carbs: 0,
-            fat: 0,
-            fiber: 0,
-            sugar: 0
-        };
-        this.mealHistory = [];
-        this.updateNutritionDisplays();
-    }
-
-    // Get nutrition summary for reports
-    getNutritionSummary() {
-        return {
-            current: this.currentIntake,
-            goals: this.dailyGoals,
-            history: this.mealHistory,
-            progress: {
-                calories: (this.currentIntake.calories / this.dailyGoals.calories) * 100,
-                protein: (this.currentIntake.protein / this.dailyGoals.protein) * 100,
-                carbs: (this.currentIntake.carbs / this.dailyGoals.carbs) * 100,
-                fat: (this.currentIntake.fat / this.dailyGoals.fat) * 100
-            },
-            deficits: this.calculateNutritionalDeficits(),
-            recommendations: this.getMealRecommendations()
-        };
-    }
-
-    // Cleanup listeners
-    cleanup() {
-        this.listeners.forEach(unsubscribe => {
-            if (typeof unsubscribe === 'function') {
-                unsubscribe();
+            // Save to Firebase
+            if (window.firebaseConfig?.helper) {
+                await window.firebaseConfig.helper.saveUserData('nutritionGoals', this.nutritionGoals);
             }
-        });
-        this.listeners = [];
+
+            this.updateNutritionDisplay();
+            this.showSuccess('Nutrition goals updated!');
+        } catch (error) {
+            console.error('Error updating goals:', error);
+            this.showError('Failed to update goals');
+        }
+    }
+
+    generateAIInsights() {
+        const totals = this.calculateDailyTotals();
+        const insights = [];
+
+        // Calorie analysis
+        const caloriePercent = (totals.calories / this.nutritionGoals.calories) * 100;
+        if (caloriePercent < 80) {
+            insights.push({
+                type: 'warning',
+                message: `You're ${Math.round(this.nutritionGoals.calories - totals.calories)} calories below your goal. Consider adding a healthy snack.`,
+                recommendation: 'Try nuts, Greek yogurt, or a protein smoothie'
+            });
+        } else if (caloriePercent > 110) {
+            insights.push({
+                type: 'info',
+                message: `You're ${Math.round(totals.calories - this.nutritionGoals.calories)} calories over your goal.`,
+                recommendation: 'Focus on lighter meals tomorrow or add some exercise'
+            });
+        }
+
+        // Protein analysis
+        const proteinPercent = (totals.protein / this.nutritionGoals.protein) * 100;
+        if (proteinPercent < 80) {
+            insights.push({
+                type: 'warning',
+                message: `Protein intake is low. You need ${Math.round(this.nutritionGoals.protein - totals.protein)}g more.`,
+                recommendation: 'Add lean meats, eggs, or protein powder to your next meal'
+            });
+        }
+
+        // Macro balance analysis
+        const proteinCals = totals.protein * 4;
+        const carbCals = totals.carbs * 4;
+        const fatCals = totals.fat * 9;
+        const totalMacroCals = proteinCals + carbCals + fatCals;
+
+        if (totalMacroCals > 0) {
+            const proteinRatio = (proteinCals / totalMacroCals) * 100;
+            const carbRatio = (carbCals / totalMacroCals) * 100;
+            const fatRatio = (fatCals / totalMacroCals) * 100;
+
+            if (proteinRatio > 35) {
+                insights.push({
+                    type: 'info',
+                    message: 'High protein ratio detected. Great for muscle building!',
+                    recommendation: 'Make sure to stay hydrated with increased protein intake'
+                });
+            }
+
+            if (carbRatio < 25) {
+                insights.push({
+                    type: 'info',
+                    message: 'Low carbohydrate intake. You might be following a low-carb diet.',
+                    recommendation: 'Ensure adequate energy for workouts'
+                });
+            }
+        }
+
+        // Time-based insights
+        const currentHour = new Date().getHours();
+        if (currentHour > 18 && totals.calories < this.nutritionGoals.calories * 0.7) {
+            insights.push({
+                type: 'warning',
+                message: 'Evening calorie intake seems low. Consider a balanced dinner.',
+                recommendation: 'Include protein, healthy carbs, and vegetables'
+            });
+        }
+
+        this.aiInsights.recommendations = insights;
+        this.displayAIInsights();
+    }
+
+    displayAIInsights() {
+        const container = document.getElementById('aiInsights');
+        if (!container) return;
+
+        const insights = this.aiInsights.recommendations;
+        
+        if (insights.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Your nutrition is looking great today! Keep it up!
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = insights.map(insight => `
+            <div class="alert alert-${insight.type === 'warning' ? 'warning' : 'info'} mb-3">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-${insight.type === 'warning' ? 'exclamation-triangle' : 'lightbulb'} me-2 mt-1"></i>
+                    <div>
+                        <div class="fw-semibold mb-1">${insight.message}</div>
+                        <small class="text-muted">${insight.recommendation}</small>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    getWeeklyAnalysis() {
+        // This would analyze the past week's nutrition data
+        return {
+            averageCalories: 1950,
+            averageProtein: 145,
+            trends: {
+                calories: 'stable',
+                protein: 'increasing',
+                carbs: 'decreasing'
+            },
+            recommendations: [
+                'Your protein intake has been consistently good',
+                'Consider increasing vegetables for more micronutrients',
+                'Hydration tracking could be beneficial'
+            ]
+        };
+    }
+
+    exportNutritionData() {
+        const data = {
+            goals: this.nutritionGoals,
+            dailyLogs: this.dailyLogs,
+            insights: this.aiInsights,
+            exportDate: new Date().toISOString()
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `nutrition-data-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    showSuccess(message) {
+        this.showAlert(message, 'success');
+    }
+
+    showError(message) {
+        this.showAlert(message, 'danger');
+    }
+
+    showAlert(message, type) {
+        // Create toast notification
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
     }
 }
 
@@ -596,15 +633,4 @@ const nutritionTracker = new NutritionTracker();
 // Export for global use
 window.nutritionTracker = nutritionTracker;
 
-// Set up automatic midnight reset
-const checkMidnight = () => {
-    const now = new Date();
-    if (now.getHours() === 0 && now.getMinutes() === 0) {
-        nutritionTracker.resetDaily();
-    }
-};
-
-// Check every minute for midnight
-setInterval(checkMidnight, 60000);
-
-console.log('Nutrition tracker loaded');
+console.log('Nutrition Tracker loaded successfully');
