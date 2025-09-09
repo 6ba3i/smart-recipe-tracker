@@ -1,0 +1,303 @@
+{
+  "recommendation_models": {
+    "collaborative_filtering": {
+      "name": "Collaborative Filtering",
+      "description": "Recommends recipes based on similar users' preferences",
+      "weights": {
+        "user_similarity": 0.4,
+        "recipe_popularity": 0.3,
+        "cuisine_overlap": 0.2,
+        "time_preference": 0.1
+      },
+      "parameters": {
+        "min_users": 5,
+        "max_recommendations": 20,
+        "similarity_threshold": 0.3
+      }
+    },
+    "content_based": {
+      "name": "Content-Based Filtering",
+      "description": "Recommends recipes based on recipe characteristics",
+      "feature_weights": {
+        "cuisine_type": 0.25,
+        "cooking_time": 0.20,
+        "difficulty_level": 0.15,
+        "health_score": 0.15,
+        "ingredients": 0.15,
+        "dietary_restrictions": 0.10
+      },
+      "parameters": {
+        "feature_vector_size": 50,
+        "cosine_similarity_threshold": 0.5
+      }
+    },
+    "hybrid_model": {
+      "name": "Hybrid Recommendation Model",
+      "description": "Combines multiple recommendation strategies",
+      "model_weights": {
+        "collaborative_filtering": 0.4,
+        "content_based": 0.35,
+        "popularity_based": 0.15,
+        "ai_personalization": 0.10
+      },
+      "boosting_factors": {
+        "new_user": {
+          "content_based": 0.6,
+          "popularity_based": 0.4
+        },
+        "active_user": {
+          "collaborative_filtering": 0.5,
+          "content_based": 0.3,
+          "ai_personalization": 0.2
+        }
+      }
+    }
+  },
+  "nutrition_models": {
+    "calorie_prediction": {
+      "name": "Calorie Prediction Model",
+      "description": "Predicts calorie content based on ingredients and portions",
+      "features": [
+        "ingredient_calories_per_gram",
+        "portion_size",
+        "cooking_method",
+        "ingredient_category",
+        "preparation_time"
+      ],
+      "model_type": "linear_regression",
+      "accuracy_metrics": {
+        "mean_absolute_error": 45.2,
+        "r_squared": 0.87
+      }
+    },
+    "macro_distribution": {
+      "name": "Macronutrient Distribution Model",
+      "description": "Predicts protein, carbs, and fat distribution",
+      "target_variables": ["protein", "carbohydrates", "fat"],
+      "features": [
+        "ingredient_macro_profiles",
+        "cooking_method_impact",
+        "portion_adjustments"
+      ],
+      "model_type": "multi_output_regression"
+    },
+    "nutritional_scoring": {
+      "name": "Nutritional Quality Scoring",
+      "description": "Scores recipes based on nutritional quality",
+      "scoring_criteria": {
+        "nutrient_density": 0.3,
+        "fiber_content": 0.2,
+        "vitamin_mineral_content": 0.2,
+        "processed_ingredients": -0.15,
+        "added_sugars": -0.1,
+        "sodium_content": -0.05
+      },
+      "score_range": [0, 100]
+    }
+  },
+  "preference_learning": {
+    "cuisine_preferences": {
+      "learning_rate": 0.01,
+      "decay_factor": 0.95,
+      "initial_weights": {
+        "american": 0.2,
+        "italian": 0.15,
+        "mexican": 0.12,
+        "chinese": 0.10,
+        "indian": 0.08,
+        "mediterranean": 0.08,
+        "japanese": 0.07,
+        "thai": 0.06,
+        "french": 0.06,
+        "greek": 0.05,
+        "other": 0.03
+      }
+    },
+    "difficulty_preferences": {
+      "categories": ["easy", "medium", "hard", "expert"],
+      "adaptation_speed": 0.05,
+      "confidence_threshold": 0.7
+    },
+    "time_preferences": {
+      "time_buckets": [
+        {"range": [0, 15], "label": "quick"},
+        {"range": [16, 30], "label": "moderate"},
+        {"range": [31, 60], "label": "standard"},
+        {"range": [61, 120], "label": "lengthy"},
+        {"range": [121, 999], "label": "elaborate"}
+      ],
+      "learning_window": 30
+    }
+  },
+  "behavioral_patterns": {
+    "cooking_frequency": {
+      "categories": ["daily", "frequent", "weekly", "occasional", "rare"],
+      "prediction_features": [
+        "recipe_views_per_week",
+        "meal_plans_created",
+        "shopping_lists_generated",
+        "favorites_added_rate"
+      ]
+    },
+    "exploration_vs_exploitation": {
+      "exploration_rate": 0.2,
+      "exploitation_boost": 1.5,
+      "novelty_decay": 0.9,
+      "comfort_zone_threshold": 0.7
+    },
+    "seasonal_patterns": {
+      "seasons": ["spring", "summer", "fall", "winter"],
+      "seasonal_adjustments": {
+        "spring": {
+          "fresh_ingredients": 1.2,
+          "light_meals": 1.1
+        },
+        "summer": {
+          "cold_dishes": 1.3,
+          "grilling": 1.2,
+          "salads": 1.4
+        },
+        "fall": {
+          "comfort_food": 1.2,
+          "warm_spices": 1.1,
+          "seasonal_produce": 1.3
+        },
+        "winter": {
+          "hearty_meals": 1.3,
+          "soup_stews": 1.4,
+          "comfort_food": 1.2
+        }
+      }
+    }
+  },
+  "personalization_engine": {
+    "user_profiling": {
+      "demographic_factors": [
+        "age_group",
+        "dietary_restrictions",
+        "cooking_experience",
+        "household_size",
+        "lifestyle"
+      ],
+      "behavioral_factors": [
+        "cooking_frequency",
+        "recipe_complexity_preference",
+        "cuisine_diversity",
+        "health_consciousness",
+        "time_constraints"
+      ],
+      "preference_stability": 0.8
+    },
+    "context_awareness": {
+      "time_of_day": {
+        "breakfast": {"weight": 0.3, "features": ["quick", "healthy", "energizing"]},
+        "lunch": {"weight": 0.25, "features": ["balanced", "moderate_prep", "satisfying"]},
+        "dinner": {"weight": 0.35, "features": ["family_friendly", "substantial", "varied"]},
+        "snack": {"weight": 0.1, "features": ["quick", "portion_controlled", "healthy"]}
+      },
+      "day_of_week": {
+        "weekday": {"complexity": "low_to_medium", "time": "limited"},
+        "weekend": {"complexity": "medium_to_high", "time": "flexible"}
+      },
+      "special_occasions": {
+        "holidays": {"boost_traditional": 1.5, "boost_elaborate": 1.3},
+        "celebrations": {"boost_desserts": 1.4, "boost_special": 1.2}
+      }
+    }
+  },
+  "optimization_algorithms": {
+    "meal_plan_optimization": {
+      "objective_function": "maximize_nutrition_satisfaction",
+      "constraints": [
+        "daily_calorie_targets",
+        "macronutrient_balance",
+        "dietary_restrictions",
+        "budget_constraints",
+        "time_availability",
+        "ingredient_availability"
+      ],
+      "optimization_method": "genetic_algorithm",
+      "parameters": {
+        "population_size": 50,
+        "generations": 100,
+        "mutation_rate": 0.1,
+        "crossover_rate": 0.8
+      }
+    },
+    "recipe_ranking": {
+      "ranking_factors": [
+        {"name": "user_preference_match", "weight": 0.35},
+        {"name": "nutritional_quality", "weight": 0.25},
+        {"name": "recipe_popularity", "weight": 0.15},
+        {"name": "preparation_feasibility", "weight": 0.15},
+        {"name": "ingredient_availability", "weight": 0.10}
+      ],
+      "ranking_method": "weighted_sum",
+      "normalization": "min_max"
+    }
+  },
+  "learning_parameters": {
+    "model_update_frequency": {
+      "preference_models": "weekly",
+      "recommendation_weights": "daily",
+      "seasonal_adjustments": "monthly"
+    },
+    "feedback_integration": {
+      "explicit_feedback_weight": 0.7,
+      "implicit_feedback_weight": 0.3,
+      "feedback_decay": 0.95,
+      "minimum_feedback_threshold": 5
+    },
+    "cold_start_handling": {
+      "new_user_strategy": "popularity_and_demographics",
+      "new_recipe_strategy": "content_similarity",
+      "exploration_boost": 2.0,
+      "confidence_building_period": 14
+    }
+  },
+  "evaluation_metrics": {
+    "recommendation_quality": [
+      "precision_at_k",
+      "recall_at_k",
+      "mean_average_precision",
+      "normalized_discounted_cumulative_gain"
+    ],
+    "user_engagement": [
+      "click_through_rate",
+      "conversion_rate",
+      "time_spent_viewing",
+      "recipe_completion_rate"
+    ],
+    "business_metrics": [
+      "user_retention",
+      "feature_adoption",
+      "user_satisfaction_score",
+      "recommendation_diversity"
+    ]
+  },
+  "model_versions": {
+    "current_version": "2.1.0",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "release_date": "2024-01-15",
+        "changes": ["Initial release", "Basic collaborative filtering"]
+      },
+      {
+        "version": "1.5.0",
+        "release_date": "2024-03-20",
+        "changes": ["Added content-based filtering", "Improved cold start handling"]
+      },
+      {
+        "version": "2.0.0",
+        "release_date": "2024-06-10",
+        "changes": ["Hybrid model implementation", "Nutrition prediction models"]
+      },
+      {
+        "version": "2.1.0",
+        "release_date": "2024-09-01",
+        "changes": ["Enhanced personalization", "Seasonal pattern recognition"]
+      }
+    ]
+  }
+}
