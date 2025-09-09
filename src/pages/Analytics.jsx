@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, ButtonGroup, Alert, Spinner } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, Card, Col, Container, Row, Spinner } from 'react-bootstrap';
 import ReactECharts from 'echarts-for-react';
 import { useAuth } from '../contexts/AuthContext';
 import RecipeAI from '../services/aiAlgorithms';
@@ -18,12 +18,12 @@ import FirebaseService from '../services/firebaseService';
 
 const Analytics = () => {
   // State management
-  const { user } = useAuth();
+  const { user } = useAuth();  //   // 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [eatingPatterns, setEatingPatterns] = useState(null);
-  const [nutritionPredictions, setNutritionPredictions] = useState(null);
+  const [nutritionPredictions, setNutritionPredictions] = useState(null);  //   // 
   const [aiInsights, setAiInsights] = useState([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState(30);
   const [chartTheme, setChartTheme] = useState('light');

@@ -12,30 +12,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Row, 
-  Col, 
-  Card, 
-  Button, 
-  Form, 
-  Badge,
-  Modal,
-  Alert,
-  Dropdown,
-  ButtonGroup,
-  InputGroup,
-  Spinner
-} from 'react-bootstrap';
+import { Alert, Badge, Button, ButtonGroup, Card, Col, Container, Dropdown, Form, InputGroup, Modal, Row, Spinner } from 'react-bootstrap';
 import { 
   Heart, 
   Search, 
-  Filter, 
   Download, 
-  Share, 
   Trash2,
-  Edit,
-  Plus,
   Clock,
   Users,
   Star,
@@ -60,7 +42,7 @@ const Favorites = () => {
 
   // Display state
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [filteredFavorites, setFilteredFavorites] = useState([]);
+  const [filteredFavorites, setFilteredFavorites] = useState([]);  //   // 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -71,7 +53,7 @@ const Favorites = () => {
   const [sortBy, setSortBy] = useState('dateAdded'); // 'dateAdded', 'title', 'cookTime', 'rating'
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
 
-  // Collections state
+  // Collections state  //   // 
   const [collections, setCollections] = useState([]);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [selectedRecipes, setSelectedRecipes] = useState(new Set());

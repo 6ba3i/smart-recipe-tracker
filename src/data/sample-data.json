@@ -1,0 +1,785 @@
+{
+  "users": [
+    {
+      "id": "user_001",
+      "profile": {
+        "name": "Sarah Johnson",
+        "email": "sarah.j@email.com",
+        "age": 28,
+        "gender": "female",
+        "height": 165,
+        "weight": 68,
+        "activityLevel": "moderately_active",
+        "goals": {
+          "primary": "weight_maintenance",
+          "secondary": "muscle_gain"
+        },
+        "dietaryRestrictions": ["vegetarian"],
+        "allergies": ["nuts"],
+        "cuisinePreferences": ["mediterranean", "asian", "italian"],
+        "cookingSkill": "intermediate",
+        "timeConstraints": "moderate",
+        "budgetRange": "medium",
+        "familySize": 2
+      },
+      "nutritionGoals": {
+        "calories": 2000,
+        "protein": 120,
+        "carbohydrates": 250,
+        "fat": 67,
+        "fiber": 25,
+        "sugar": 50,
+        "sodium": 2300
+      },
+      "preferences": {
+        "maxCookingTime": 45,
+        "preferredMealTypes": ["lunch", "dinner"],
+        "avoidedIngredients": ["beef", "pork", "nuts"],
+        "favoriteIngredients": ["quinoa", "spinach", "avocado", "tofu"],
+        "spiceLevel": "medium",
+        "mealPrepFriendly": true
+      }
+    },
+    {
+      "id": "user_002", 
+      "profile": {
+        "name": "Michael Chen",
+        "email": "m.chen@email.com",
+        "age": 35,
+        "gender": "male",
+        "height": 178,
+        "weight": 82,
+        "activityLevel": "very_active",
+        "goals": {
+          "primary": "muscle_gain",
+          "secondary": "performance"
+        },
+        "dietaryRestrictions": [],
+        "allergies": ["shellfish"],
+        "cuisinePreferences": ["asian", "american", "mexican"],
+        "cookingSkill": "beginner",
+        "timeConstraints": "high",
+        "budgetRange": "high",
+        "familySize": 4
+      },
+      "nutritionGoals": {
+        "calories": 2800,
+        "protein": 180,
+        "carbohydrates": 350,
+        "fat": 93,
+        "fiber": 35,
+        "sugar": 60,
+        "sodium": 2500
+      },
+      "preferences": {
+        "maxCookingTime": 30,
+        "preferredMealTypes": ["breakfast", "dinner"],
+        "avoidedIngredients": ["shellfish"],
+        "favoriteIngredients": ["chicken", "salmon", "sweet_potato", "broccoli"],
+        "spiceLevel": "high",
+        "mealPrepFriendly": true
+      }
+    },
+    {
+      "id": "user_003",
+      "profile": {
+        "name": "Emma Rodriguez",
+        "email": "emma.r@email.com",
+        "age": 42,
+        "gender": "female",
+        "height": 160,
+        "weight": 72,
+        "activityLevel": "lightly_active",
+        "goals": {
+          "primary": "weight_loss",
+          "secondary": "health_improvement"
+        },
+        "dietaryRestrictions": ["gluten-free", "dairy-free"],
+        "allergies": ["gluten", "dairy"],
+        "cuisinePreferences": ["mediterranean", "mexican", "american"],
+        "cookingSkill": "advanced",
+        "timeConstraints": "low",
+        "budgetRange": "medium",
+        "familySize": 3
+      },
+      "nutritionGoals": {
+        "calories": 1600,
+        "protein": 100,
+        "carbohydrates": 180,
+        "fat": 53,
+        "fiber": 30,
+        "sugar": 40,
+        "sodium": 1800
+      },
+      "preferences": {
+        "maxCookingTime": 60,
+        "preferredMealTypes": ["breakfast", "lunch", "dinner"],
+        "avoidedIngredients": ["gluten", "dairy", "processed_foods"],
+        "favoriteIngredients": ["quinoa", "salmon", "vegetables", "fruits"],
+        "spiceLevel": "low",
+        "mealPrepFriendly": false
+      }
+    }
+  ],
+  "nutritionEntries": [
+    {
+      "userId": "user_001",
+      "date": "2024-01-15",
+      "meals": {
+        "breakfast": {
+          "foods": [
+            {
+              "name": "Greek Yogurt Berry Parfait",
+              "recipeId": 4,
+              "servings": 1,
+              "nutrition": {
+                "calories": 280,
+                "protein": 18,
+                "carbohydrates": 38,
+                "fat": 6
+              }
+            },
+            {
+              "name": "Coffee with almond milk",
+              "servings": 1,
+              "nutrition": {
+                "calories": 25,
+                "protein": 1,
+                "carbohydrates": 3,
+                "fat": 1
+              }
+            }
+          ],
+          "totals": {
+            "calories": 305,
+            "protein": 19,
+            "carbohydrates": 41,
+            "fat": 7
+          }
+        },
+        "lunch": {
+          "foods": [
+            {
+              "name": "Mediterranean Quinoa Power Bowl",
+              "recipeId": 1,
+              "servings": 1,
+              "nutrition": {
+                "calories": 420,
+                "protein": 18,
+                "carbohydrates": 45,
+                "fat": 15
+              }
+            },
+            {
+              "name": "Sparkling water",
+              "servings": 1,
+              "nutrition": {
+                "calories": 0,
+                "protein": 0,
+                "carbohydrates": 0,
+                "fat": 0
+              }
+            }
+          ],
+          "totals": {
+            "calories": 420,
+            "protein": 18,
+            "carbohydrates": 45,
+            "fat": 15
+          }
+        },
+        "dinner": {
+          "foods": [
+            {
+              "name": "Asian Vegetable Stir-Fry",
+              "recipeId": 3,
+              "servings": 1,
+              "nutrition": {
+                "calories": 220,
+                "protein": 12,
+                "carbohydrates": 28,
+                "fat": 8
+              }
+            },
+            {
+              "name": "Brown rice",
+              "servings": 1,
+              "nutrition": {
+                "calories": 220,
+                "protein": 5,
+                "carbohydrates": 45,
+                "fat": 2
+              }
+            }
+          ],
+          "totals": {
+            "calories": 440,
+            "protein": 17,
+            "carbohydrates": 73,
+            "fat": 10
+          }
+        },
+        "snacks": [
+          {
+            "name": "Almonds",
+            "servings": 0.5,
+            "nutrition": {
+              "calories": 82,
+              "protein": 3,
+              "carbohydrates": 3,
+              "fat": 7
+            }
+          },
+          {
+            "name": "Apple",
+            "servings": 1,
+            "nutrition": {
+              "calories": 95,
+              "protein": 0,
+              "carbohydrates": 25,
+              "fat": 0
+            }
+          }
+        ]
+      },
+      "dailyTotals": {
+        "calories": 1342,
+        "protein": 57,
+        "carbohydrates": 187,
+        "fat": 39,
+        "fiber": 22,
+        "sugar": 42,
+        "sodium": 1120
+      },
+      "waterIntake": 2.1,
+      "exerciseMinutes": 45,
+      "sleepHours": 7.5,
+      "mood": "good",
+      "energyLevel": 8
+    },
+    {
+      "userId": "user_002",
+      "date": "2024-01-15",
+      "meals": {
+        "breakfast": {
+          "foods": [
+            {
+              "name": "Protein smoothie",
+              "servings": 1,
+              "nutrition": {
+                "calories": 350,
+                "protein": 30,
+                "carbohydrates": 40,
+                "fat": 8
+              }
+            },
+            {
+              "name": "Banana",
+              "servings": 1,
+              "nutrition": {
+                "calories": 105,
+                "protein": 1,
+                "carbohydrates": 27,
+                "fat": 0
+              }
+            }
+          ],
+          "totals": {
+            "calories": 455,
+            "protein": 31,
+            "carbohydrates": 67,
+            "fat": 8
+          }
+        },
+        "lunch": {
+          "foods": [
+            {
+              "name": "Grilled Salmon with Avocado Salsa",
+              "recipeId": 2,
+              "servings": 1,
+              "nutrition": {
+                "calories": 380,
+                "protein": 32,
+                "carbohydrates": 8,
+                "fat": 24
+              }
+            },
+            {
+              "name": "Quinoa",
+              "servings": 1,
+              "nutrition": {
+                "calories": 222,
+                "protein": 8,
+                "carbohydrates": 39,
+                "fat": 4
+              }
+            }
+          ],
+          "totals": {
+            "calories": 602,
+            "protein": 40,
+            "carbohydrates": 47,
+            "fat": 28
+          }
+        },
+        "dinner": {
+          "foods": [
+            {
+              "name": "Lemon Herb Chicken with Roasted Vegetables",
+              "recipeId": 6,
+              "servings": 1,
+              "nutrition": {
+                "calories": 420,
+                "protein": 38,
+                "carbohydrates": 24,
+                "fat": 18
+              }
+            },
+            {
+              "name": "Sweet potato",
+              "servings": 1,
+              "nutrition": {
+                "calories": 180,
+                "protein": 4,
+                "carbohydrates": 41,
+                "fat": 0
+              }
+            }
+          ],
+          "totals": {
+            "calories": 600,
+            "protein": 42,
+            "carbohydrates": 65,
+            "fat": 18
+          }
+        }
+      },
+      "dailyTotals": {
+        "calories": 1657,
+        "protein": 113,
+        "carbohydrates": 179,
+        "fat": 54,
+        "fiber": 18,
+        "sugar": 38,
+        "sodium": 980
+      },
+      "waterIntake": 3.2,
+      "exerciseMinutes": 90,
+      "sleepHours": 8,
+      "mood": "excellent",
+      "energyLevel": 9
+    }
+  ],
+  "mealPlans": [
+    {
+      "id": "plan_001",
+      "userId": "user_001",
+      "name": "Vegetarian Week Plan",
+      "dateRange": {
+        "start": "2024-01-15",
+        "end": "2024-01-21"
+      },
+      "days": {
+        "monday": {
+          "breakfast": {
+            "recipeId": 4,
+            "recipeName": "Greek Yogurt Berry Parfait",
+            "servings": 1
+          },
+          "lunch": {
+            "recipeId": 1,
+            "recipeName": "Mediterranean Quinoa Power Bowl",
+            "servings": 1
+          },
+          "dinner": {
+            "recipeId": 3,
+            "recipeName": "Asian Vegetable Stir-Fry",
+            "servings": 1
+          },
+          "snack": {
+            "name": "Mixed nuts and fruit",
+            "calories": 200
+          }
+        },
+        "tuesday": {
+          "breakfast": {
+            "recipeId": 7,
+            "recipeName": "Overnight Chocolate Chia Pudding",
+            "servings": 1
+          },
+          "lunch": {
+            "recipeId": 5,
+            "recipeName": "Roasted Sweet Potato and Black Bean Tacos",
+            "servings": 1
+          },
+          "dinner": {
+            "recipeId": 1,
+            "recipeName": "Mediterranean Quinoa Power Bowl",
+            "servings": 1
+          },
+          "snack": {
+            "name": "Vegetable sticks with hummus",
+            "calories": 150
+          }
+        },
+        "wednesday": {
+          "breakfast": {
+            "recipeId": 4,
+            "recipeName": "Greek Yogurt Berry Parfait",
+            "servings": 1
+          },
+          "lunch": {
+            "recipeId": 3,
+            "recipeName": "Asian Vegetable Stir-Fry",
+            "servings": 1
+          },
+          "dinner": {
+            "recipeId": 5,
+            "recipeName": "Roasted Sweet Potato and Black Bean Tacos",
+            "servings": 1
+          },
+          "snack": {
+            "name": "Banana with almond butter",
+            "calories": 180
+          }
+        }
+      },
+      "weeklyTotals": {
+        "estimatedCalories": 14000,
+        "estimatedCost": 85.50,
+        "prepTime": 420,
+        "nutritionBalance": {
+          "protein": 18,
+          "carbohydrates": 55,
+          "fat": 27
+        }
+      },
+      "shoppingList": {
+        "produce": [
+          "Avocados (4)",
+          "Spinach (2 bags)",
+          "Tomatoes (2 lbs)",
+          "Cucumber (2)",
+          "Bell peppers (6)",
+          "Sweet potatoes (4)",
+          "Bananas (6)",
+          "Mixed berries (2 containers)"
+        ],
+        "proteins": [
+          "Greek yogurt (3 containers)",
+          "Tofu (2 blocks)",
+          "Black beans (2 cans)",
+          "Feta cheese (1 container)"
+        ],
+        "grains": [
+          "Quinoa (2 lbs)",
+          "Chia seeds (1 bag)",
+          "Corn tortillas (1 package)"
+        ],
+        "pantry": [
+          "Olive oil",
+          "Lemon (4)",
+          "Garlic",
+          "Onions (3)",
+          "Cocoa powder",
+          "Maple syrup",
+          "Almond milk"
+        ]
+      }
+    }
+  ],
+  "favoriteRecipes": [
+    {
+      "userId": "user_001",
+      "recipeIds": [1, 3, 4, 5, 7],
+      "dateAdded": "2024-01-10"
+    },
+    {
+      "userId": "user_002", 
+      "recipeIds": [2, 6, 8],
+      "dateAdded": "2024-01-12"
+    },
+    {
+      "userId": "user_003",
+      "recipeIds": [1, 2, 5],
+      "dateAdded": "2024-01-14"
+    }
+  ],
+  "shoppingLists": [
+    {
+      "id": "list_001",
+      "userId": "user_001",
+      "name": "Weekly Groceries",
+      "dateCreated": "2024-01-15",
+      "items": [
+        {
+          "category": "Produce",
+          "items": [
+            {
+              "name": "Avocados",
+              "quantity": 4,
+              "unit": "pieces",
+              "estimatedCost": 6.00,
+              "checked": false,
+              "essential": true
+            },
+            {
+              "name": "Spinach",
+              "quantity": 2,
+              "unit": "bags",
+              "estimatedCost": 5.98,
+              "checked": true,
+              "essential": true
+            },
+            {
+              "name": "Cherry tomatoes",
+              "quantity": 2,
+              "unit": "containers",
+              "estimatedCost": 4.50,
+              "checked": false,
+              "essential": true
+            },
+            {
+              "name": "Bell peppers",
+              "quantity": 4,
+              "unit": "pieces",
+              "estimatedCost": 6.00,
+              "checked": false,
+              "essential": true
+            }
+          ]
+        },
+        {
+          "category": "Protein",
+          "items": [
+            {
+              "name": "Greek yogurt",
+              "quantity": 2,
+              "unit": "containers",
+              "estimatedCost": 8.00,
+              "checked": false,
+              "essential": true
+            },
+            {
+              "name": "Tofu",
+              "quantity": 2,
+              "unit": "blocks",
+              "estimatedCost": 5.98,
+              "checked": false,
+              "essential": true
+            },
+            {
+              "name": "Black beans",
+              "quantity": 2,
+              "unit": "cans",
+              "estimatedCost": 2.50,
+              "checked": false,
+              "essential": true
+            }
+          ]
+        },
+        {
+          "category": "Grains",
+          "items": [
+            {
+              "name": "Quinoa",
+              "quantity": 1,
+              "unit": "lb bag",
+              "estimatedCost": 6.99,
+              "checked": false,
+              "essential": true
+            },
+            {
+              "name": "Chia seeds",
+              "quantity": 1,
+              "unit": "bag",
+              "estimatedCost": 8.99,
+              "checked": false,
+              "essential": false
+            }
+          ]
+        }
+      ],
+      "totalEstimatedCost": 54.94,
+      "completed": false
+    }
+  ],
+  "healthMetrics": [
+    {
+      "userId": "user_001",
+      "date": "2024-01-15",
+      "weight": 68.2,
+      "bodyFatPercentage": 22.5,
+      "muscleMass": 25.8,
+      "waterPercentage": 58.2,
+      "bloodPressure": {
+        "systolic": 118,
+        "diastolic": 75
+      },
+      "restingHeartRate": 65,
+      "sleepQuality": 7.5,
+      "stressLevel": 4,
+      "energyLevel": 8,
+      "mood": "good",
+      "notes": "Feeling great after starting meal prep routine"
+    },
+    {
+      "userId": "user_002",
+      "date": "2024-01-15", 
+      "weight": 82.1,
+      "bodyFatPercentage": 15.2,
+      "muscleMass": 38.5,
+      "waterPercentage": 62.1,
+      "bloodPressure": {
+        "systolic": 125,
+        "diastolic": 80
+      },
+      "restingHeartRate": 58,
+      "sleepQuality": 8.0,
+      "stressLevel": 3,
+      "energyLevel": 9,
+      "mood": "excellent",
+      "notes": "Great workout performance, recovery feels good"
+    }
+  ],
+  "aiInsights": [
+    {
+      "userId": "user_001",
+      "date": "2024-01-15",
+      "type": "nutrition_recommendation",
+      "message": "Based on your recent meals, you're consistently meeting your protein goals. Consider adding more healthy fats like nuts or seeds to reach your calorie targets.",
+      "confidence": 0.85,
+      "actionItems": [
+        "Add 1 oz almonds to afternoon snack",
+        "Include avocado in more meals",
+        "Try the overnight chia pudding recipe"
+      ]
+    },
+    {
+      "userId": "user_001",
+      "date": "2024-01-15",
+      "type": "meal_pattern_analysis",
+      "message": "Your eating pattern shows good consistency. You tend to eat lighter breakfasts and larger dinners. This works well for your schedule.",
+      "confidence": 0.92,
+      "trends": {
+        "breakfast_calories": 305,
+        "lunch_calories": 420,
+        "dinner_calories": 440,
+        "preferred_cooking_time": 25
+      }
+    },
+    {
+      "userId": "user_002",
+      "date": "2024-01-15",
+      "type": "performance_optimization",
+      "message": "Your protein intake is excellent for muscle building. Consider timing your largest protein portion within 2 hours post-workout for optimal recovery.",
+      "confidence": 0.88,
+      "recommendations": [
+        "Post-workout protein shake within 30 minutes",
+        "Include complex carbs in pre-workout meals",
+        "Maintain current protein distribution"
+      ]
+    }
+  ],
+  "recipeRatings": [
+    {
+      "userId": "user_001",
+      "recipeId": 1,
+      "rating": 5,
+      "review": "Perfect balance of flavors and nutrition. Easy to meal prep!",
+      "dateRated": "2024-01-12",
+      "helpful": 8,
+      "wouldMakeAgain": true
+    },
+    {
+      "userId": "user_001",
+      "recipeId": 4,
+      "rating": 4,
+      "review": "Great for busy mornings. Kids love it too.",
+      "dateRated": "2024-01-10",
+      "helpful": 5,
+      "wouldMakeAgain": true
+    },
+    {
+      "userId": "user_002",
+      "recipeId": 2,
+      "rating": 5,
+      "review": "Incredible flavor and perfect for my fitness goals. The avocado salsa is amazing!",
+      "dateRated": "2024-01-11",
+      "helpful": 12,
+      "wouldMakeAgain": true
+    },
+    {
+      "userId": "user_002",
+      "recipeId": 6,
+      "rating": 4,
+      "review": "Good protein content, easy to make. Will try with different vegetables next time.",
+      "dateRated": "2024-01-13",
+      "helpful": 6,
+      "wouldMakeAgain": true
+    },
+    {
+      "userId": "user_003",
+      "recipeId": 5,
+      "rating": 5,
+      "review": "Perfect for my dietary restrictions. Filling and delicious!",
+      "dateRated": "2024-01-14",
+      "helpful": 9,
+      "wouldMakeAgain": true
+    }
+  ],
+  "cookingHistory": [
+    {
+      "userId": "user_001",
+      "recipeId": 1,
+      "dateCook": "2024-01-15",
+      "actualCookTime": 22,
+      "difficulty_experienced": 1,
+      "modifications": [
+        "Added extra olives",
+        "Used balsamic vinegar instead of lemon"
+      ],
+      "success": true,
+      "notes": "Much easier than expected. Great for meal prep."
+    },
+    {
+      "userId": "user_002",
+      "recipeId": 2,
+      "dateCook": "2024-01-14",
+      "actualCookTime": 18,
+      "difficulty_experienced": 2,
+      "modifications": [
+        "Marinated salmon for 30 minutes",
+        "Added jalapeños to salsa"
+      ],
+      "success": true,
+      "notes": "Grilling technique took practice but results were worth it."
+    }
+  ],
+  "seasonalTrends": {
+    "winter": {
+      "popularIngredients": ["sweet_potato", "root_vegetables", "citrus", "warming_spices"],
+      "cuisinePreferences": ["mediterranean", "indian", "thai"],
+      "avgCookingTime": 40,
+      "comfortFoodFactor": 8.2
+    },
+    "spring": {
+      "popularIngredients": ["asparagus", "peas", "herbs", "leafy_greens"],
+      "cuisinePreferences": ["mediterranean", "asian", "american"],
+      "avgCookingTime": 25,
+      "freshnessFactor": 9.1
+    },
+    "summer": {
+      "popularIngredients": ["tomatoes", "berries", "grilled_proteins", "salad_greens"],
+      "cuisinePreferences": ["mediterranean", "mexican", "american"],
+      "avgCookingTime": 20,
+      "lightnessFactor": 8.8
+    },
+    "fall": {
+      "popularIngredients": ["squash", "apples", "cranberries", "nuts"],
+      "cuisinePreferences": ["american", "mediterranean", "asian"],
+      "avgCookingTime": 35,
+      "harvestFactor": 9.0
+    }
+  }
+}

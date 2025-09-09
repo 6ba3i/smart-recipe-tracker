@@ -1,0 +1,674 @@
+/**
+ * Analytics Page - AI Predictions and Data Visualization
+ * 
+ * Features:
+ * - ECharts integration for data visualization
+ * - AI algorithm predictions and insights
+ * - Bootstrap responsive design
+ * - Firebase data integration
+ * - Real-time analytics updates
+ */
+
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Button, Alert, Spinner } from 'react-bootstrap';
+import ReactECharts from 'echarts-for-react';
+import { useAuth } from '../contexts/AuthContext';
+import RecipeAI from '../services/aiAlgorithms';
+import FirebaseService from '../services/firebaseService';
+
+const Analytics = () => {
+  // State management
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [eatingPatterns, setEatingPatterns] = useState(null);
+  const [nutritionPredictions, setNutritionPredictions] = useState(null);
+  const [aiInsights, setAiInsights] = useState([]);
+  const [selectedTimeframe, setSelectedTimeframe] = useState(30);
+  const [chartTheme, setChartTheme] = useState('light');
+
+  // Load analytics data on component mount
+  useEffect(() => {
+    if (user?.uid) {
+      loadAnalyticsData();
+    }
+  }, [user, selectedTimeframe]);
+
+  /**
+   * Load all analytics data
+   */
+  const loadAnalyticsData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('Loading analytics data for user:', user.uid);
+
+      // Load data in parallel
+      const [patterns, predictions, insights, userStats] = await Promise.all([
+        RecipeAI.analyzeEatingPatterns(user.uid, selectedTimeframe),
+        generateNutritionPredictions(),
+        FirebaseService.getAIPredictions(user.uid),
+        FirebaseService.getUserStats(user.uid)
+      ]);
+
+      setEatingPatterns(patterns);
+      setNutritionPredictions(predictions);
+      setAiInsights(insights);
+      setAnalyticsData(userStats);
+
+      console.log('Analytics data loaded successfully');
+    } catch (err) {
+      console.error('Error loading analytics data:', err);
+      setError('Failed to load analytics data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Generate nutrition predictions using AI
+   */
+  const generateNutritionPredictions = async () => {
+    try {
+      // Mock user profile - in real app, this would come from user preferences
+      const userProfile = {
+        age: 30,
+        gender: 'female',
+        weight: 65,
+        height: 165,
+        goal: 'maintain'
+      };
+
+      const predictions = RecipeAI.predictNutritionNeeds(userProfile, 'moderate');
+      return predictions;
+    } catch (error) {
+      console.error('Error generating nutrition predictions:', error);
+      return null;
+    }
+  };
+
+  /**
+   * ECharts configuration for nutrition breakdown
+   */
+  const getNutritionChartOption = () => {
+    if (!nutritionPredictions) return {};
+
+    return {
+      title: {
+        text: 'Daily Nutrition Targets',
+        left: 'center',
+        textStyle: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: '{a} <br/>{b}: {c}g ({d}%)'
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        textStyle: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      series: [
+        {
+          name: 'Macronutrients',
+          type: 'pie',
+          radius: '50%',
+          data: [
+            { value: nutritionPredictions.protein, name: 'Protein' },
+            { value: nutritionPredictions.carbohydrates, name: 'Carbs' },
+            { value: nutritionPredictions.fat, name: 'Fat' }
+          ],
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          },
+          itemStyle: {
+            color: function(params) {
+              const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1'];
+              return colors[params.dataIndex];
+            }
+          }
+        }
+      ],
+      backgroundColor: chartTheme === 'dark' ? '#2c3e50' : '#fff'
+    };
+  };
+
+  /**
+   * ECharts configuration for eating patterns
+   */
+  const getEatingPatternsChartOption = () => {
+    if (!eatingPatterns?.patterns?.macroTrends?.weeklyData) return {};
+
+    const weeklyData = eatingPatterns.patterns.macroTrends.weeklyData;
+    const weeks = weeklyData.map((_, index) => `Week ${index + 1}`);
+
+    return {
+      title: {
+        text: 'Weekly Nutrition Trends',
+        left: 'center',
+        textStyle: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
+      legend: {
+        data: ['Calories', 'Protein', 'Carbs', 'Fat'],
+        textStyle: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      toolbox: {
+        feature: {
+          saveAsImage: {}
+        }
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: weeks,
+        axisLabel: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      series: [
+        {
+          name: 'Calories',
+          type: 'line',
+          stack: 'Total',
+          data: weeklyData.map(week => Math.round(week.calories)),
+          itemStyle: { color: '#FF6B6B' }
+        },
+        {
+          name: 'Protein',
+          type: 'line',
+          stack: 'Total',
+          data: weeklyData.map(week => Math.round(week.protein)),
+          itemStyle: { color: '#4ECDC4' }
+        },
+        {
+          name: 'Carbs',
+          type: 'line',
+          stack: 'Total',
+          data: weeklyData.map(week => Math.round(week.carbs)),
+          itemStyle: { color: '#45B7D1' }
+        },
+        {
+          name: 'Fat',
+          type: 'line',
+          stack: 'Total',
+          data: weeklyData.map(week => Math.round(week.fat)),
+          itemStyle: { color: '#F7DC6F' }
+        }
+      ],
+      backgroundColor: chartTheme === 'dark' ? '#2c3e50' : '#fff'
+    };
+  };
+
+  /**
+   * ECharts configuration for meal frequency
+   */
+  const getMealFrequencyChartOption = () => {
+    if (!eatingPatterns?.patterns?.mealFrequency) return {};
+
+    // Mock data for demonstration
+    const frequencyData = [
+      { name: '1 meal', value: 2 },
+      { name: '2 meals', value: 5 },
+      { name: '3 meals', value: 15 },
+      { name: '4 meals', value: 8 },
+      { name: '5+ meals', value: 3 }
+    ];
+
+    return {
+      title: {
+        text: 'Meal Frequency Distribution',
+        left: 'center',
+        textStyle: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: frequencyData.map(item => item.name),
+        axisLabel: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          color: chartTheme === 'dark' ? '#fff' : '#333'
+        }
+      },
+      series: [
+        {
+          name: 'Days',
+          type: 'bar',
+          data: frequencyData.map(item => item.value),
+          itemStyle: {
+            color: function(params) {
+              const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7DC6F', '#BB8FCE'];
+              return colors[params.dataIndex];
+            }
+          }
+        }
+      ],
+      backgroundColor: chartTheme === 'dark' ? '#2c3e50' : '#fff'
+    };
+  };
+
+  /**
+   * Generate AI insights summary
+   */
+  const renderAIInsights = () => {
+    if (!eatingPatterns?.predictions) return null;
+
+    const { predictions } = eatingPatterns;
+
+    return (
+      <Card className="h-100">
+        <Card.Header className="bg-primary text-white">
+          <h5 className="mb-0">
+            <i className="fas fa-brain me-2"></i>
+            AI Insights & Recommendations
+          </h5>
+        </Card.Header>
+        <Card.Body>
+          {/* Calorie Prediction */}
+          <div className="mb-3">
+            <h6 className="text-primary">
+              <i className="fas fa-chart-line me-2"></i>
+              Next Week Prediction
+            </h6>
+            <p className="mb-1">
+              Predicted average daily calories: 
+              <strong className="text-success ms-1">
+                {predictions.nextWeekCalories} cal
+              </strong>
+            </p>
+          </div>
+
+          {/* Recommendations */}
+          <div className="mb-3">
+            <h6 className="text-primary">
+              <i className="fas fa-lightbulb me-2"></i>
+              Recommendations
+            </h6>
+            {predictions.recommendedAdjustments?.length > 0 ? (
+              <ul className="list-unstyled">
+                {predictions.recommendedAdjustments.map((rec, index) => (
+                  <li key={index} className="mb-1">
+                    <i className="fas fa-check-circle text-success me-2"></i>
+                    {rec}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted">Your nutrition patterns look good!</p>
+            )}
+          </div>
+
+          {/* Risk Factors */}
+          {predictions.riskFactors?.length > 0 && (
+            <div className="mb-3">
+              <h6 className="text-warning">
+                <i className="fas fa-exclamation-triangle me-2"></i>
+                Areas to Watch
+              </h6>
+              <ul className="list-unstyled">
+                {predictions.riskFactors.map((risk, index) => (
+                  <li key={index} className="mb-1">
+                    <span className={`badge bg-${risk.severity === 'high' ? 'danger' : 'warning'} me-2`}>
+                      {risk.severity}
+                    </span>
+                    {risk.type.replace('_', ' ')}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Improvement Suggestions */}
+          <div>
+            <h6 className="text-primary">
+              <i className="fas fa-arrow-up me-2"></i>
+              Improvement Tips
+            </h6>
+            {predictions.improvementSuggestions?.length > 0 ? (
+              <ul className="list-unstyled">
+                {predictions.improvementSuggestions.slice(0, 3).map((tip, index) => (
+                  <li key={index} className="mb-1">
+                    <i className="fas fa-star text-warning me-2"></i>
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted">Keep up the great work!</p>
+            )}
+          </div>
+        </Card.Body>
+      </Card>
+    );
+  };
+
+  /**
+   * Render consistency score
+   */
+  const renderConsistencyScore = () => {
+    if (!eatingPatterns?.patterns?.consistency) return null;
+
+    const { consistency } = eatingPatterns.patterns;
+    const scorePercentage = Math.round(consistency.score * 100);
+    
+    let badgeColor = 'danger';
+    if (consistency.interpretation === 'high') badgeColor = 'success';
+    else if (consistency.interpretation === 'moderate') badgeColor = 'warning';
+
+    return (
+      <Card className="text-center h-100">
+        <Card.Header className="bg-info text-white">
+          <h5 className="mb-0">
+            <i className="fas fa-chart-pie me-2"></i>
+            Eating Consistency
+          </h5>
+        </Card.Header>
+        <Card.Body className="d-flex flex-column justify-content-center">
+          <div className="mb-3">
+            <span className={`badge bg-${badgeColor} fs-1 p-3`}>
+              {scorePercentage}%
+            </span>
+          </div>
+          <p className="mb-2">
+            <strong>Consistency Level: </strong>
+            <span className={`text-${badgeColor}`}>
+              {consistency.interpretation.charAt(0).toUpperCase() + consistency.interpretation.slice(1)}
+            </span>
+          </p>
+          <small className="text-muted">
+            Based on daily calorie variance over {selectedTimeframe} days
+          </small>
+        </Card.Body>
+      </Card>
+    );
+  };
+
+  if (loading) {
+    return (
+      <Container className="text-center py-5">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-3">Loading AI analytics...</p>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="py-4">
+        <Alert variant="danger">
+          <Alert.Heading>Error Loading Analytics</Alert.Heading>
+          <p>{error}</p>
+          <Button variant="outline-danger" onClick={loadAnalyticsData}>
+            Try Again
+          </Button>
+        </Alert>
+      </Container>
+    );
+  }
+
+  return (
+    <Container fluid className="py-4">
+      {/* Page Header */}
+      <Row className="mb-4">
+        <Col>
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h1 className="h2 mb-1">
+                <i className="fas fa-chart-line text-primary me-3"></i>
+                AI Analytics Dashboard
+              </h1>
+              <p className="text-muted">
+                AI-powered insights into your nutrition patterns and predictions
+              </p>
+            </div>
+            <div>
+              <ButtonGroup className="me-3">
+                <Button 
+                  variant={selectedTimeframe === 7 ? "primary" : "outline-primary"}
+                  onClick={() => setSelectedTimeframe(7)}
+                >
+                  7 Days
+                </Button>
+                <Button 
+                  variant={selectedTimeframe === 30 ? "primary" : "outline-primary"}
+                  onClick={() => setSelectedTimeframe(30)}
+                >
+                  30 Days
+                </Button>
+                <Button 
+                  variant={selectedTimeframe === 90 ? "primary" : "outline-primary"}
+                  onClick={() => setSelectedTimeframe(90)}
+                >
+                  90 Days
+                </Button>
+              </ButtonGroup>
+              <Button 
+                variant="outline-secondary"
+                onClick={() => setChartTheme(chartTheme === 'light' ? 'dark' : 'light')}
+              >
+                <i className={`fas fa-${chartTheme === 'light' ? 'moon' : 'sun'}`}></i>
+              </Button>
+            </div>
+          </div>
+        </Col>
+      </Row>
+
+      {/* Summary Cards */}
+      <Row className="mb-4">
+        <Col lg={3} md={6} className="mb-3">
+          <Card className="text-center h-100">
+            <Card.Body>
+              <i className="fas fa-utensils fa-2x text-primary mb-2"></i>
+              <h5>{analyticsData?.totalFavorites || 0}</h5>
+              <small className="text-muted">Favorite Recipes</small>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={3} md={6} className="mb-3">
+          <Card className="text-center h-100">
+            <Card.Body>
+              <i className="fas fa-calendar-alt fa-2x text-success mb-2"></i>
+              <h5>{analyticsData?.totalMealPlans || 0}</h5>
+              <small className="text-muted">Meal Plans</small>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={3} md={6} className="mb-3">
+          <Card className="text-center h-100">
+            <Card.Body>
+              <i className="fas fa-chart-bar fa-2x text-info mb-2"></i>
+              <h5>{analyticsData?.recentNutritionEntries || 0}</h5>
+              <small className="text-muted">Recent Entries</small>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={3} md={6} className="mb-3">
+          {renderConsistencyScore()}
+        </Col>
+      </Row>
+
+      {/* Charts Row */}
+      <Row className="mb-4">
+        <Col lg={6} className="mb-4">
+          <Card className="h-100">
+            <Card.Header>
+              <h5 className="mb-0">
+                <i className="fas fa-chart-pie me-2"></i>
+                Daily Nutrition Targets
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              {nutritionPredictions ? (
+                <ReactECharts 
+                  option={getNutritionChartOption()} 
+                  style={{ height: '400px' }}
+                />
+              ) : (
+                <div className="text-center py-5">
+                  <p className="text-muted">Loading nutrition data...</p>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={6} className="mb-4">
+          <Card className="h-100">
+            <Card.Header>
+              <h5 className="mb-0">
+                <i className="fas fa-chart-bar me-2"></i>
+                Meal Frequency
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              <ReactECharts 
+                option={getMealFrequencyChartOption()} 
+                style={{ height: '400px' }}
+              />
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Trends and Insights Row */}
+      <Row className="mb-4">
+        <Col lg={8} className="mb-4">
+          <Card className="h-100">
+            <Card.Header>
+              <h5 className="mb-0">
+                <i className="fas fa-chart-line me-2"></i>
+                Weekly Nutrition Trends
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              {eatingPatterns?.patterns?.macroTrends?.weeklyData ? (
+                <ReactECharts 
+                  option={getEatingPatternsChartOption()} 
+                  style={{ height: '400px' }}
+                />
+              ) : (
+                <div className="text-center py-5">
+                  <i className="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                  <p className="text-muted">
+                    Not enough data to show trends. Track your nutrition for at least 2 weeks.
+                  </p>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={4} className="mb-4">
+          {renderAIInsights()}
+        </Col>
+      </Row>
+
+      {/* Nutrition Targets */}
+      {nutritionPredictions && (
+        <Row className="mb-4">
+          <Col>
+            <Card>
+              <Card.Header className="bg-success text-white">
+                <h5 className="mb-0">
+                  <i className="fas fa-bullseye me-2"></i>
+                  AI-Recommended Daily Targets
+                </h5>
+              </Card.Header>
+              <Card.Body>
+                <Row>
+                  <Col lg={3} md={6} className="mb-3">
+                    <div className="text-center">
+                      <h3 className="text-primary">{nutritionPredictions.calories}</h3>
+                      <small className="text-muted">Calories</small>
+                    </div>
+                  </Col>
+                  <Col lg={3} md={6} className="mb-3">
+                    <div className="text-center">
+                      <h3 className="text-success">{nutritionPredictions.protein}g</h3>
+                      <small className="text-muted">Protein</small>
+                    </div>
+                  </Col>
+                  <Col lg={3} md={6} className="mb-3">
+                    <div className="text-center">
+                      <h3 className="text-info">{nutritionPredictions.carbohydrates}g</h3>
+                      <small className="text-muted">Carbs</small>
+                    </div>
+                  </Col>
+                  <Col lg={3} md={6} className="mb-3">
+                    <div className="text-center">
+                      <h3 className="text-warning">{nutritionPredictions.fat}g</h3>
+                      <small className="text-muted">Fat</small>
+                    </div>
+                  </Col>
+                </Row>
+                <Alert variant="info" className="mt-3">
+                  <small>
+                    <i className="fas fa-info-circle me-2"></i>
+                    These targets are calculated based on your profile and activity level. 
+                    Confidence: {Math.round((nutritionPredictions.confidence || 0.85) * 100)}%
+                  </small>
+                </Alert>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {/* Refresh Button */}
+      <Row>
+        <Col className="text-center">
+          <Button variant="primary" onClick={loadAnalyticsData} disabled={loading}>
+            <i className="fas fa-sync-alt me-2"></i>
+            Refresh Analytics
+          </Button>
+        </Col>
+      </Row>
+    </Container>
+  );
+};
+
+export default Analytics;

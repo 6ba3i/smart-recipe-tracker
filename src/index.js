@@ -18,7 +18,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import './styles/index.css';
 
 // Performance monitoring
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
+import { onCLS, onFID, onFCP, onLCP, onTTFB } from 'web-vitals';
 
 // Error reporting (optional - uncomment if you have error tracking service)
 // import * as Sentry from '@sentry/react';
@@ -77,11 +77,11 @@ function sendToAnalytics(metric) {
 
 // Measure and report Web Vitals
 if (typeof window !== 'undefined') {
-  getCLS(sendToAnalytics);
-  getFID(sendToAnalytics);
-  getFCP(sendToAnalytics);
-  getLCP(sendToAnalytics);
-  getTTFB(sendToAnalytics);
+  onCLS(sendToAnalytics);
+  onFID(sendToAnalytics);
+  onFCP(sendToAnalytics);
+  onLCP(sendToAnalytics);
+  onTTFB(sendToAnalytics);
 }
 
 // Global error handler

@@ -12,37 +12,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Row, 
-  Col, 
-  Card, 
-  Button, 
-  Form, 
-  Alert,
-  Badge,
-  Modal,
-  Tab,
-  Tabs,
-  Table,
-  ProgressBar,
-  ListGroup
-} from 'react-bootstrap';
-import { 
-  User, 
-  Settings, 
-  Download, 
-  Upload, 
-  Trash2,
-  Save,
-  Edit,
-  Activity,
-  Award,
-  Calendar,
-  Heart,
-  ChefHat,
-  Target
-} from 'lucide-react';
+import { Alert, Badge, Button, Card, Col, Container, Form, ListGroup, Modal, ProgressBar, Row, Tab, Table, Tabs } from 'react-bootstrap';
+import { Activity, Calendar, ChefHat, Download, Edit, Heart, Target, Trash2, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRecipe } from '../contexts/RecipeContext';
 import FirebaseService from '../services/firebaseService';
@@ -100,10 +71,10 @@ const Profile = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
 
-  // Form states
+  // Form states  //   // 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [success, setSuccess] = useState(null);  //   // 
   const [editingField, setEditingField] = useState(null);
 
   useEffect(() => {

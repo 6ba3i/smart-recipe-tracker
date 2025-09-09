@@ -11,35 +11,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Row, 
-  Col, 
-  Card, 
-  Button, 
-  Modal,
-  Form,
-  Badge,
-  Alert,
-  Dropdown,
-  ButtonGroup,
-  Tab,
-  Tabs,
-  Table,
-  ListGroup
-} from 'react-bootstrap';
-import { 
-  Calendar, 
-  Plus, 
-  ShoppingCart, 
-  Download, 
-  Share, 
-  Trash2,
-  Edit,
-  Copy,
-  Clock,
-  Users
-} from 'lucide-react';
+import { Alert, Badge, Button, Card, Col, Container, Form, ListGroup, Modal, Row, Tab, Table, Tabs } from 'react-bootstrap';
+import { Calendar, Clock, Download, Plus, ShoppingCart, Trash2, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRecipe } from '../contexts/RecipeContext';
 import { SpoonacularAPI } from '../services/spoonacularAPI';
@@ -49,15 +22,15 @@ const MealPlanner = () => {
   const { user, isAuthenticated } = useAuth();
   const { favorites } = useRecipe();
 
-  // Current week state
+  // Current week state  //   // 
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [mealPlan, setMealPlan] = useState({});
+  const [mealPlan, setMealPlan] = useState({});  //   // 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Modal states
-  const [showAddMealModal, setShowAddMealModal] = useState(false);
-  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showAddMealModal, setShowAddMealModal] = useState(false);  //  //    // 
+  //   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('');
 
@@ -66,13 +39,13 @@ const MealPlanner = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  // Shopping list
-  const [shoppingList, setShoppingList] = useState([]);
+  // Shopping list  //  //    // 
+  //   const [shoppingList, setShoppingList] = useState([]);
   const [showShoppingList, setShowShoppingList] = useState(false);
 
-  // Templates
-  const [templates, setTemplates] = useState([]);
-  const [selectedTemplate, setSelectedTemplate] = useState('');
+  // Templates  //   // 
+  const [templates, setTemplates] = useState([]);  //  //    // 
+  //   const [selectedTemplate, setSelectedTemplate] = useState('');
 
   // API instance
   const [api] = useState(() => new SpoonacularAPI(process.env.REACT_APP_SPOONACULAR_API_KEY));

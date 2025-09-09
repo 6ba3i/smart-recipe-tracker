@@ -1,22 +1,25 @@
-/**
- * Firebase Authentication Context
- * 
- * Provides authentication state and methods throughout the app
- * Integrates with your existing Firebase auth setup
- */
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
-  auth, 
+  getAuth,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
   updateProfile,
   sendPasswordResetEmail,
-  GoogleAuthProvider,
-  signInWithPopup
+  signInAnonymously 
 } from 'firebase/auth';
+import { 
+  doc, 
+  setDoc, 
+  getDoc, 
+  updateDoc, 
+  collection, 
+  query, 
+  where, 
+  getDocs 
+} from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
 const AuthContext = createContext();
 
@@ -29,76 +32,63 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Monitor auth state changes
-  useEffect(() => {
-    console.log('Setting up auth state listener');
-    
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('Auth state changed:', user?.uid || 'no user');
-      setUser(user);
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
-
   // Sign up with email and password
-  const signup = async (email, password, displayName) => {
+  const signup = async (email, password, additionalData = {}) => {
     try {
       setError(null);
-      console.log('Creating user account:', email);
-      
+      const auth = getAuth();
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Update profile with display name
-      if (displayName) {
+      // Update user profile if display name provided
+      if (additionalData.displayName) {
         await updateProfile(result.user, {
-          displayName: displayName
+          displayName: additionalData.displayName
         });
       }
+
+      // Create user document in Firestore
+      await createUserProfile(result.user, additionalData);
       
-      console.log('User account created successfully');
       return result;
     } catch (error) {
-      console.error('Signup error:', error);
-      setError(getErrorMessage(error));
+      setError(error.message);
       throw error;
     }
   };
 
   // Sign in with email and password
-  const login = async (email, password) => {
+  const signin = async (email, password) => {
     try {
       setError(null);
-      console.log('Signing in user:', email);
-      
+      const auth = getAuth();
       const result = await signInWithEmailAndPassword(auth, email, password);
-      console.log('User signed in successfully');
       return result;
     } catch (error) {
-      console.error('Login error:', error);
-      setError(getErrorMessage(error));
+      setError(error.message);
       throw error;
     }
   };
 
-  // Sign in with Google
-  const loginWithGoogle = async () => {
+  // Sign in anonymously for demo purposes
+  const signInAnon = async () => {
     try {
       setError(null);
-      console.log('Signing in with Google');
+      const auth = getAuth();
+      const result = await signInAnonymously(auth);
       
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      console.log('Google sign in successful');
+      // Create anonymous user profile
+      await createUserProfile(result.user, {
+        displayName: 'Anonymous User',
+        isAnonymous: true
+      });
+      
       return result;
     } catch (error) {
-      console.error('Google login error:', error);
-      setError(getErrorMessage(error));
+      setError(error.message);
       throw error;
     }
   };
@@ -107,12 +97,10 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       setError(null);
-      console.log('Signing out user');
+      const auth = getAuth();
       await signOut(auth);
-      console.log('User signed out successfully');
     } catch (error) {
-      console.error('Logout error:', error);
-      setError(getErrorMessage(error));
+      setError(error.message);
       throw error;
     }
   };
@@ -121,12 +109,10 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (email) => {
     try {
       setError(null);
-      console.log('Sending password reset email to:', email);
+      const auth = getAuth();
       await sendPasswordResetEmail(auth, email);
-      console.log('Password reset email sent');
     } catch (error) {
-      console.error('Password reset error:', error);
-      setError(getErrorMessage(error));
+      setError(error.message);
       throw error;
     }
   };
@@ -135,68 +121,151 @@ export const AuthProvider = ({ children }) => {
   const updateUserProfile = async (updates) => {
     try {
       setError(null);
-      console.log('Updating user profile:', updates);
       
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, updates);
-        console.log('Profile updated successfully');
+      if (!currentUser) throw new Error('No user logged in');
+
+      // Update Firebase Auth profile
+      if (updates.displayName || updates.photoURL) {
+        await updateProfile(currentUser, {
+          displayName: updates.displayName || currentUser.displayName,
+          photoURL: updates.photoURL || currentUser.photoURL
+        });
       }
+
+      // Update Firestore document
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        ...updates,
+        updatedAt: new Date().toISOString()
+      });
+
+      return true;
     } catch (error) {
-      console.error('Profile update error:', error);
-      setError(getErrorMessage(error));
+      setError(error.message);
       throw error;
     }
   };
 
-  // Clear errors
-  const clearError = () => {
-    setError(null);
-  };
+  // Create user profile in Firestore
+  const createUserProfile = async (user, additionalData = {}) => {
+    if (!user) return;
 
-  // Helper function to get user-friendly error messages
-  const getErrorMessage = (error) => {
-    switch (error.code) {
-      case 'auth/user-not-found':
-        return 'No account found with this email address.';
-      case 'auth/wrong-password':
-        return 'Incorrect password.';
-      case 'auth/email-already-in-use':
-        return 'An account with this email already exists.';
-      case 'auth/weak-password':
-        return 'Password should be at least 6 characters.';
-      case 'auth/invalid-email':
-        return 'Invalid email address.';
-      case 'auth/too-many-requests':
-        return 'Too many failed attempts. Please try again later.';
-      case 'auth/network-request-failed':
-        return 'Network error. Please check your connection.';
-      case 'auth/popup-closed-by-user':
-        return 'Sign-in popup was closed before completion.';
-      default:
-        return error.message || 'An unexpected error occurred.';
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        const { displayName, email, photoURL } = user;
+        const createdAt = new Date().toISOString();
+
+        const defaultProfile = {
+          displayName: displayName || additionalData.displayName || 'User',
+          email,
+          photoURL: photoURL || null,
+          createdAt,
+          updatedAt: createdAt,
+          isAnonymous: user.isAnonymous || false,
+          preferences: {
+            cuisinePreferences: [],
+            dietaryRestrictions: [],
+            allergies: [],
+            cookingSkill: 'beginner',
+            maxCookingTime: 60,
+            budgetRange: 'medium',
+            familySize: 1
+          },
+          nutritionGoals: {
+            calories: 2000,
+            protein: 100,
+            carbohydrates: 250,
+            fat: 67,
+            fiber: 25,
+            sodium: 2300
+          },
+          stats: {
+            recipesViewed: 0,
+            recipesCooked: 0,
+            favoritesCount: 0,
+            mealPlansCreated: 0,
+            joinDate: createdAt
+          },
+          ...additionalData
+        };
+
+        await setDoc(userRef, defaultProfile);
+      }
+    } catch (error) {
+      console.error('Error creating user profile:', error);
     }
   };
 
+  // Get user profile from Firestore
+  const getUserProfile = async (userId = null) => {
+    try {
+      const uid = userId || currentUser?.uid;
+      if (!uid) return null;
+
+      const userRef = doc(db, 'users', uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        return { id: userSnap.id, ...userSnap.data() };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      return null;
+    }
+  };
+
+  // Check if user exists by email
+  const checkUserExists = async (email) => {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+      return !querySnapshot.empty;
+    } catch (error) {
+      console.error('Error checking user existence:', error);
+      return false;
+    }
+  };
+
+  // Auth state change listener
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      
+      if (user) {
+        // Ensure user profile exists in Firestore
+        await createUserProfile(user);
+      }
+      
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // Clear error when user changes
+  useEffect(() => {
+    setError(null);
+  }, [currentUser]);
+
   const value = {
-    // State
-    user,
+    currentUser,
     loading,
     error,
-    
-    // Methods
     signup,
-    login,
-    loginWithGoogle,
+    signin,
+    signInAnon,
     logout,
     resetPassword,
     updateUserProfile,
-    clearError,
-    
-    // User info helpers
-    isAuthenticated: !!user,
-    userDisplayName: user?.displayName || user?.email || 'User',
-    userEmail: user?.email,
-    userId: user?.uid
+    getUserProfile,
+    checkUserExists,
+    setError
   };
 
   return (
@@ -205,3 +274,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthProvider;

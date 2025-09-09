@@ -20,24 +20,13 @@ import {
   Modal,
   Form,
   Alert,
-  Badge,
   ProgressBar,
   Table,
   Tab,
   Tabs,
   InputGroup
 } from 'react-bootstrap';
-import { 
-  Plus, 
-  Target, 
-  TrendingUp, 
-  Calendar,
-  Search,
-  Edit,
-  Trash2,
-  Download,
-  Activity
-} from 'lucide-react';
+import { Activity, Download, Edit, Plus, Search, Target, Trash2 } from 'lucide-react';
 import ReactECharts from 'echarts-for-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRecipe } from '../contexts/RecipeContext';
@@ -48,12 +37,12 @@ const NutritionTracker = () => {
   const { user, isAuthenticated } = useAuth();
 
   // Current date state
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());  //   // 
   const [currentWeek, setCurrentWeek] = useState(new Date());
 
   // Nutrition data state
   const [dailyLog, setDailyLog] = useState([]);
-  const [weeklyData, setWeeklyData] = useState([]);
+  const [weeklyData, setWeeklyData] = useState([]);  //   // 
   const [monthlyData, setMonthlyData] = useState([]);
   const [nutritionGoals, setNutritionGoals] = useState({
     calories: 2000,
@@ -85,7 +74,7 @@ const NutritionTracker = () => {
     unit: 'gram'
   });
 
-  // Loading and error states
+  // Loading and error states  //   // 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 

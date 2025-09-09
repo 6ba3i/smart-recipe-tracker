@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import {  useLocation } from 'react-router-dom';
 import { Container, Card, Button, Alert } from 'react-bootstrap';
 import { Lock, LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';

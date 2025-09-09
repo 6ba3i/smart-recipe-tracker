@@ -1,0 +1,496 @@
+{
+  "nutritionDatabase": {
+    "lastUpdated": "2024-01-15T00:00:00Z",
+    "version": "1.0.0",
+    "foods": {
+      "chicken_breast": {
+        "name": "Chicken Breast, Skinless",
+        "category": "Protein",
+        "subcategory": "Poultry",
+        "perServingSize": "100g",
+        "nutrition": {
+          "calories": 165,
+          "protein": 31.0,
+          "carbohydrates": 0.0,
+          "fat": 3.6,
+          "fiber": 0.0,
+          "sugar": 0.0,
+          "sodium": 74,
+          "potassium": 256,
+          "vitamins": {
+            "vitaminA": 6,
+            "vitaminC": 0,
+            "vitaminD": 0.1,
+            "vitaminE": 0.2,
+            "vitaminK": 0.0,
+            "thiamine": 0.1,
+            "riboflavin": 0.1,
+            "niacin": 13.7,
+            "vitaminB6": 0.5,
+            "folate": 4,
+            "vitaminB12": 0.3
+          },
+          "minerals": {
+            "calcium": 15,
+            "iron": 0.9,
+            "magnesium": 25,
+            "phosphorus": 196,
+            "zinc": 1.0,
+            "selenium": 20.6
+          }
+        },
+        "cost": 8.99,
+        "costUnit": "per kg",
+        "availability": "year-round",
+        "sustainabilityScore": 6.5,
+        "allergens": [],
+        "dietaryFlags": ["high-protein", "low-carb", "keto-friendly", "paleo"]
+      },
+      "quinoa": {
+        "name": "Quinoa, Cooked",
+        "category": "Grains",
+        "subcategory": "Ancient Grains",
+        "perServingSize": "100g",
+        "nutrition": {
+          "calories": 222,
+          "protein": 8.1,
+          "carbohydrates": 39.4,
+          "fat": 3.6,
+          "fiber": 2.8,
+          "sugar": 0.9,
+          "sodium": 7,
+          "potassium": 172,
+          "vitamins": {
+            "vitaminA": 1,
+            "vitaminC": 0,
+            "vitaminD": 0,
+            "vitaminE": 0.6,
+            "vitaminK": 0.0,
+            "thiamine": 0.1,
+            "riboflavin": 0.1,
+            "niacin": 0.4,
+            "vitaminB6": 0.1,
+            "folate": 42,
+            "vitaminB12": 0
+          },
+          "minerals": {
+            "calcium": 17,
+            "iron": 1.5,
+            "magnesium": 64,
+            "phosphorus": 152,
+            "zinc": 1.1,
+            "selenium": 2.8
+          }
+        },
+        "cost": 12.99,
+        "costUnit": "per kg",
+        "availability": "year-round",
+        "sustainabilityScore": 8.5,
+        "allergens": [],
+        "dietaryFlags": ["gluten-free", "vegetarian", "vegan", "high-protein", "complete-protein"]
+      },
+      "salmon": {
+        "name": "Atlantic Salmon, Farmed",
+        "category": "Protein",
+        "subcategory": "Fish",
+        "perServingSize": "100g",
+        "nutrition": {
+          "calories": 208,
+          "protein": 25.4,
+          "carbohydrates": 0.0,
+          "fat": 12.4,
+          "fiber": 0.0,
+          "sugar": 0.0,
+          "sodium": 59,
+          "potassium": 363,
+          "vitamins": {
+            "vitaminA": 58,
+            "vitaminC": 0,
+            "vitaminD": 11.0,
+            "vitaminE": 3.6,
+            "vitaminK": 0.1,
+            "thiamine": 0.2,
+            "riboflavin": 0.4,
+            "niacin": 8.5,
+            "vitaminB6": 0.6,
+            "folate": 25,
+            "vitaminB12": 3.2
+          },
+          "minerals": {
+            "calcium": 9,
+            "iron": 0.3,
+            "magnesium": 30,
+            "phosphorus": 240,
+            "zinc": 0.4,
+            "selenium": 24.9
+          }
+        },
+        "cost": 24.99,
+        "costUnit": "per kg",
+        "availability": "year-round",
+        "sustainabilityScore": 5.0,
+        "allergens": ["fish"],
+        "dietaryFlags": ["high-protein", "omega-3", "low-carb", "keto-friendly", "paleo"]
+      },
+      "avocado": {
+        "name": "Avocado, Raw",
+        "category": "Fruits",
+        "subcategory": "Stone Fruits",
+        "perServingSize": "100g",
+        "nutrition": {
+          "calories": 160,
+          "protein": 2.0,
+          "carbohydrates": 8.5,
+          "fat": 14.7,
+          "fiber": 6.7,
+          "sugar": 0.7,
+          "sodium": 7,
+          "potassium": 485,
+          "vitamins": {
+            "vitaminA": 7,
+            "vitaminC": 10.0,
+            "vitaminD": 0,
+            "vitaminE": 2.1,
+            "vitaminK": 21.0,
+            "thiamine": 0.1,
+            "riboflavin": 0.1,
+            "niacin": 1.7,
+            "vitaminB6": 0.3,
+            "folate": 81,
+            "vitaminB12": 0
+          },
+          "minerals": {
+            "calcium": 12,
+            "iron": 0.6,
+            "magnesium": 29,
+            "phosphorus": 52,
+            "zinc": 0.6,
+            "selenium": 0.4
+          }
+        },
+        "cost": 3.99,
+        "costUnit": "per piece",
+        "availability": "year-round",
+        "sustainabilityScore": 4.0,
+        "allergens": [],
+        "dietaryFlags": ["high-fiber", "healthy-fats", "vegetarian", "vegan", "keto-friendly", "paleo"]
+      },
+      "spinach": {
+        "name": "Spinach, Raw",
+        "category": "Vegetables",
+        "subcategory": "Leafy Greens",
+        "perServingSize": "100g",
+        "nutrition": {
+          "calories": 23,
+          "protein": 2.9,
+          "carbohydrates": 3.6,
+          "fat": 0.4,
+          "fiber": 2.2,
+          "sugar": 0.4,
+          "sodium": 79,
+          "potassium": 558,
+          "vitamins": {
+            "vitaminA": 469,
+            "vitaminC": 28.1,
+            "vitaminD": 0,
+            "vitaminE": 2.0,
+            "vitaminK": 483.0,
+            "thiamine": 0.1,
+            "riboflavin": 0.2,
+            "niacin": 0.7,
+            "vitaminB6": 0.2,
+            "folate": 194,
+            "vitaminB12": 0
+          },
+          "minerals": {
+            "calcium": 99,
+            "iron": 2.7,
+            "magnesium": 79,
+            "phosphorus": 49,
+            "zinc": 0.5,
+            "selenium": 1.0
+          }
+        },
+        "cost": 4.99,
+        "costUnit": "per kg",
+        "availability": "year-round",
+        "sustainabilityScore": 9.5,
+        "allergens": [],
+        "dietaryFlags": ["low-calorie", "high-iron", "high-vitamin-k", "vegetarian", "vegan", "paleo"]
+      },
+      "brown_rice": {
+        "name": "Brown Rice, Cooked",
+        "category": "Grains",
+        "subcategory": "Rice",
+        "perServingSize": "100g",
+        "nutrition": {
+          "calories": 112,
+          "protein": 2.6,
+          "carbohydrates": 23.0,
+          "fat": 0.9,
+          "fiber": 1.8,
+          "sugar": 0.4,
+          "sodium": 5,
+          "potassium": 43,
+          "vitamins": {
+            "vitaminA": 0,
+            "vitaminC": 0,
+            "vitaminD": 0,
+            "vitaminE": 0.1,
+            "vitaminK": 0.6,
+            "thiamine": 0.1,
+            "riboflavin": 0.0,
+            "niacin": 1.5,
+            "vitaminB6": 0.1,
+            "folate": 4,
+            "vitaminB12": 0
+          },
+          "minerals": {
+            "calcium": 10,
+            "iron": 0.4,
+            "magnesium": 44,
+            "phosphorus": 77,
+            "zinc": 0.6,
+            "selenium": 9.8
+          }
+        },
+        "cost": 3.99,
+        "costUnit": "per kg",
+        "availability": "year-round",
+        "sustainabilityScore": 7.0,
+        "allergens": [],
+        "dietaryFlags": ["whole-grain", "gluten-free", "vegetarian", "vegan"]
+      },
+      "olive_oil": {
+        "name": "Extra Virgin Olive Oil",
+        "category": "Fats & Oils",
+        "subcategory": "Plant Oils",
+        "perServingSize": "1 tbsp (14g)",
+        "nutrition": {
+          "calories": 119,
+          "protein": 0.0,
+          "carbohydrates": 0.0,
+          "fat": 13.5,
+          "fiber": 0.0,
+          "sugar": 0.0,
+          "sodium": 0,
+          "potassium": 0,
+          "vitamins": {
+            "vitaminA": 0,
+            "vitaminC": 0,
+            "vitaminD": 0,
+            "vitaminE": 1.9,
+            "vitaminK": 8.1,
+            "thiamine": 0,
+            "riboflavin": 0,
+            "niacin": 0,
+            "vitaminB6": 0,
+            "folate": 0,
+            "vitaminB12": 0
+          },
+          "minerals": {
+            "calcium": 0,
+            "iron": 0.1,
+            "magnesium": 0,
+            "phosphorus": 0,
+            "zinc": 0,
+            "selenium": 0
+          }
+        },
+        "cost": 12.99,
+        "costUnit": "per 500ml",
+        "availability": "year-round",
+        "sustainabilityScore": 8.0,
+        "allergens": [],
+        "dietaryFlags": ["healthy-fats", "monounsaturated", "vegetarian", "vegan", "keto-friendly", "paleo"]
+      },
+      "greek_yogurt": {
+        "name": "Greek Yogurt, Plain, Non-fat",
+        "category": "Dairy",
+        "subcategory": "Yogurt",
+        "perServingSize": "100g",
+        "nutrition": {
+          "calories": 59,
+          "protein": 10.3,
+          "carbohydrates": 3.6,
+          "fat": 0.4,
+          "fiber": 0.0,
+          "sugar": 3.6,
+          "sodium": 36,
+          "potassium": 141,
+          "vitamins": {
+            "vitaminA": 1,
+            "vitaminC": 0,
+            "vitaminD": 0,
+            "vitaminE": 0.0,
+            "vitaminK": 0.2,
+            "thiamine": 0.0,
+            "riboflavin": 0.3,
+            "niacin": 0.2,
+            "vitaminB6": 0.1,
+            "folate": 7,
+            "vitaminB12": 0.5
+          },
+          "minerals": {
+            "calcium": 110,
+            "iron": 0.0,
+            "magnesium": 11,
+            "phosphorus": 135,
+            "zinc": 0.5,
+            "selenium": 9.7
+          }
+        },
+        "cost": 5.99,
+        "costUnit": "per 500g",
+        "availability": "year-round",
+        "sustainabilityScore": 6.0,
+        "allergens": ["dairy"],
+        "dietaryFlags": ["high-protein", "probiotics", "low-fat", "vegetarian"]
+      },
+      "sweet_potato": {
+        "name": "Sweet Potato, Baked",
+        "category": "Vegetables",
+        "subcategory": "Root Vegetables",
+        "perServingSize": "100g",
+        "nutrition": {
+          "calories": 90,
+          "protein": 2.0,
+          "carbohydrates": 20.7,
+          "fat": 0.2,
+          "fiber": 3.3,
+          "sugar": 6.8,
+          "sodium": 6,
+          "potassium": 475,
+          "vitamins": {
+            "vitaminA": 961,
+            "vitaminC": 19.6,
+            "vitaminD": 0,
+            "vitaminE": 0.7,
+            "vitaminK": 2.3,
+            "thiamine": 0.1,
+            "riboflavin": 0.1,
+            "niacin": 1.5,
+            "vitaminB6": 0.2,
+            "folate": 6,
+            "vitaminB12": 0
+          },
+          "minerals": {
+            "calcium": 38,
+            "iron": 0.7,
+            "magnesium": 27,
+            "phosphorus": 62,
+            "zinc": 0.3,
+            "selenium": 0.2
+          }
+        },
+        "cost": 2.99,
+        "costUnit": "per kg",
+        "availability": "fall/winter peak",
+        "sustainabilityScore": 8.5,
+        "allergens": [],
+        "dietaryFlags": ["high-beta-carotene", "high-fiber", "vegetarian", "vegan", "paleo"]
+      },
+      "almonds": {
+        "name": "Almonds, Raw",
+        "category": "Nuts & Seeds",
+        "subcategory": "Tree Nuts",
+        "perServingSize": "28g (1 oz)",
+        "nutrition": {
+          "calories": 164,
+          "protein": 6.0,
+          "carbohydrates": 6.1,
+          "fat": 14.2,
+          "fiber": 3.5,
+          "sugar": 1.2,
+          "sodium": 0,
+          "potassium": 208,
+          "vitamins": {
+            "vitaminA": 0,
+            "vitaminC": 0,
+            "vitaminD": 0,
+            "vitaminE": 7.3,
+            "vitaminK": 0,
+            "thiamine": 0.1,
+            "riboflavin": 0.3,
+            "niacin": 1.0,
+            "vitaminB6": 0.0,
+            "folate": 12,
+            "vitaminB12": 0
+          },
+          "minerals": {
+            "calcium": 76,
+            "iron": 1.1,
+            "magnesium": 76,
+            "phosphorus": 137,
+            "zinc": 0.9,
+            "selenium": 1.2
+          }
+        },
+        "cost": 18.99,
+        "costUnit": "per kg",
+        "availability": "year-round",
+        "sustainabilityScore": 6.5,
+        "allergens": ["tree nuts"],
+        "dietaryFlags": ["healthy-fats", "high-vitamin-e", "vegetarian", "vegan", "keto-friendly", "paleo"]
+      }
+    },
+    "recipeMultipliers": {
+      "cooking_methods": {
+        "raw": 1.0,
+        "steamed": 1.0,
+        "boiled": 0.95,
+        "baked": 0.90,
+        "grilled": 0.90,
+        "sautéed": 0.85,
+        "fried": 0.75,
+        "deep_fried": 0.60
+      },
+      "processing_levels": {
+        "whole": 1.0,
+        "minimally_processed": 0.95,
+        "processed": 0.80,
+        "highly_processed": 0.60
+      }
+    },
+    "nutritionGoals": {
+      "adults": {
+        "calories": {
+          "sedentary_female": 1800,
+          "sedentary_male": 2200,
+          "active_female": 2000,
+          "active_male": 2600,
+          "very_active_female": 2400,
+          "very_active_male": 3000
+        },
+        "macros": {
+          "protein_percentage": [10, 35],
+          "carbs_percentage": [45, 65],
+          "fat_percentage": [20, 35]
+        },
+        "vitamins_daily": {
+          "vitaminA": 900,
+          "vitaminC": 90,
+          "vitaminD": 15,
+          "vitaminE": 15,
+          "vitaminK": 120,
+          "thiamine": 1.2,
+          "riboflavin": 1.3,
+          "niacin": 16,
+          "vitaminB6": 1.3,
+          "folate": 400,
+          "vitaminB12": 2.4
+        },
+        "minerals_daily": {
+          "calcium": 1000,
+          "iron": 8,
+          "magnesium": 400,
+          "phosphorus": 700,
+          "potassium": 4700,
+          "sodium": 2300,
+          "zinc": 11,
+          "selenium": 55
+        }
+      }
+    }
+  }
+}
