@@ -1,192 +1,271 @@
-// Configuration Manager
+// Configuration Manager for Smart Recipe Tracker
+// Environment Variables Only - No config files
+
 class ConfigManager {
     constructor() {
-        this.config = this.loadConfig();
-        this.validateConfig();
+        this.config = null;
+        this.isInitialized = false;
+        this.initializeConfig();
     }
 
-    // Load configuration from environment variables
-    loadConfig() {
-        const config = {
+    initializeConfig() {
+        try {
+            // Load configuration from environment variables only
+            this.config = this.loadFromEnvironmentVariables() || this.loadFallbackConfig();
+
+            this.validateConfig();
+            this.isInitialized = true;
+            
+            console.log('Configuration loaded successfully');
+            this.logConfigStatus();
+            
+        } catch (error) {
+            console.error('Failed to initialize configuration:', error);
+            this.config = this.loadFallbackConfig();
+            this.isInitialized = true;
+        }
+    }
+
+    // Load from environment variables (build tools)
+    loadFromEnvironmentVariables() {
+        try {
+            const envConfig = this.getEnvironmentConfig();
+            
+            if (envConfig && envConfig.firebase.apiKey && envConfig.firebase.apiKey !== 'undefined') {
+                console.log('Using environment variables configuration');
+                return envConfig;
+            }
+        } catch (error) {
+            console.log('Environment variables not available or incomplete');
+        }
+        return null;
+    }
+
+    // Fallback configuration (for initial setup)
+    loadFallbackConfig() {
+        console.warn('Using fallback configuration - please set up your environment variables!');
+        return {
             firebase: {
-                apiKey: this.getEnvVariable('VITE_FIREBASE_API_KEY', 'AIzaSyC_fnBK0vfP3U6SKhFWJP98CC6e2sjjIJs'),
-                authDomain: this.getEnvVariable('VITE_FIREBASE_AUTH_DOMAIN', 'nut-track.firebaseapp.com'),
-                projectId: this.getEnvVariable('VITE_FIREBASE_PROJECT_ID', 'nut-track'),
-                storageBucket: this.getEnvVariable('VITE_FIREBASE_STORAGE_BUCKET', 'nut-track.firebasestorage.app'),
-                messagingSenderId: this.getEnvVariable('VITE_FIREBASE_MESSAGING_SENDER_ID', '656967210072'),
-                appId: this.getEnvVariable('VITE_FIREBASE_APP_ID', '1:656967210072:web:5f17fc3d10e525e08ee62d'),
-                measurementId: this.getEnvVariable('VITE_FIREBASE_MEASUREMENT_ID', 'G-CVLLBVRBEF')
+                apiKey: "demo-mode-replace-with-real-key",
+                authDomain: "demo-project.firebaseapp.com",
+                projectId: "demo-project", 
+                storageBucket: "demo-project.appspot.com",
+                messagingSenderId: "123456789012",
+                appId: "1:123456789012:web:demo",
+                measurementId: "G-DEMO"
             },
             spoonacular: {
-                apiKey: this.getEnvVariable('VITE_SPOONACULAR_API_KEY', 'a197d4a8778b40389a0d3d0a6a82f32d'),
-                apiSecret: this.getEnvVariable('VITE_SPOONACULAR_API_SECRET', 'd29b19b20b5e48b0aceefcfdc9f80251'),
-                baseUrl: 'https://api.spoonacular.com'
+                apiKey: "demo-mode-replace-with-real-key",
+                apiSecret: ""
             },
             app: {
-                environment: this.getEnvVariable('NODE_ENV', 'development'),
-                version: '1.0.0',
-                debugMode: this.getEnvVariable('VITE_DEBUG', 'false') === 'true'
+                name: "Smart Recipe Tracker",
+                version: "1.0.0",
+                environment: "development"
+            },
+            features: {
+                enableAnalytics: false,
+                enableNotifications: false,
+                debugMode: true
             }
         };
-
-        return config;
     }
 
-    // Get environment variable with fallback
-    getEnvVariable(key, fallback = '') {
+    // Get environment variables configuration
+    getEnvironmentConfig() {
+        const env = this.getEnvironmentVariables();
+        
+        return {
+            firebase: {
+                apiKey: env.FIREBASE_API_KEY,
+                authDomain: env.FIREBASE_AUTH_DOMAIN,
+                projectId: env.FIREBASE_PROJECT_ID,
+                storageBucket: env.FIREBASE_STORAGE_BUCKET,
+                messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+                appId: env.FIREBASE_APP_ID,
+                measurementId: env.FIREBASE_MEASUREMENT_ID
+            },
+            spoonacular: {
+                apiKey: env.SPOONACULAR_API_KEY,
+                apiSecret: env.SPOONACULAR_API_SECRET || ""
+            },
+            app: {
+                name: env.APP_NAME || "Smart Recipe Tracker",
+                version: env.APP_VERSION || "1.0.0",
+                environment: env.NODE_ENV || "development"
+            },
+            features: {
+                enableAnalytics: env.ENABLE_ANALYTICS !== 'false',
+                enableNotifications: env.ENABLE_NOTIFICATIONS !== 'false',
+                debugMode: env.DEBUG_MODE === 'true' || env.NODE_ENV === 'development'
+            }
+        };
+    }
+
+    // Get environment variables from different build tools
+    getEnvironmentVariables() {
+        const env = {};
+        
         // Try different environment variable patterns
         const patterns = [
-            key,
-            key.replace('VITE_', ''),
-            key.toLowerCase(),
-            key.toUpperCase()
+            'VITE_',           // Vite
+            'REACT_APP_',      // Create React App
+            'NEXT_PUBLIC_',    // Next.js
+            'VUE_APP_',        // Vue CLI
+            ''                 // Direct (Node.js)
         ];
 
-        for (const pattern of patterns) {
-            try {
-                // Check process.env (Node.js environments)
-                if (typeof process !== 'undefined' && process.env && process.env[pattern]) {
-                    return process.env[pattern];
-                }
+        const keys = [
+            'FIREBASE_API_KEY',
+            'FIREBASE_AUTH_DOMAIN', 
+            'FIREBASE_PROJECT_ID',
+            'FIREBASE_STORAGE_BUCKET',
+            'FIREBASE_MESSAGING_SENDER_ID',
+            'FIREBASE_APP_ID',
+            'FIREBASE_MEASUREMENT_ID',
+            'SPOONACULAR_API_KEY',
+            'SPOONACULAR_API_SECRET',
+            'APP_NAME',
+            'APP_VERSION',
+            'NODE_ENV',
+            'ENABLE_ANALYTICS',
+            'ENABLE_NOTIFICATIONS',
+            'DEBUG_MODE'
+        ];
 
-                // Check import.meta.env (Vite environments)
-                if (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env[pattern]) {
-                    return import.meta.env[pattern];
+        // Try each pattern for each key
+        keys.forEach(key => {
+            for (const pattern of patterns) {
+                const envKey = pattern + key;
+                try {
+                    // Check if we're in a build environment
+                    if (typeof process !== 'undefined' && process.env && process.env[envKey]) {
+                        env[key] = process.env[envKey];
+                        break;
+                    }
+                    // Check for build-time injected variables (common with Vite, etc.)
+                    if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__[envKey]) {
+                        env[key] = window.__ENV__[envKey];
+                        break;
+                    }
+                } catch (e) {
+                    // Environment access might fail in some contexts
+                    continue;
                 }
-
-                // Check window environment variables
-                if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__[pattern]) {
-                    return window.__ENV__[pattern];
-                }
-            } catch (e) {
-                continue;
             }
-        }
+        });
 
-        return fallback;
+        return env;
     }
-
     // Validate configuration
     validateConfig() {
         const requiredFields = [
             'firebase.apiKey',
-            'firebase.projectId',
+            'firebase.projectId', 
             'spoonacular.apiKey'
         ];
 
         const warnings = [];
-        const errors = [];
 
         requiredFields.forEach(field => {
             const value = this.getNestedValue(this.config, field);
-            if (!value) {
-                errors.push(`${field} is missing`);
-            } else if (value.includes('demo-mode') || value.includes('your-') || value.includes('replace-with')) {
-                warnings.push(`${field} appears to be a placeholder value`);
+            if (!value || value.includes('demo-mode') || value.includes('your-') || value.includes('replace-with')) {
+                warnings.push(`${field} is not properly configured`);
             }
         });
 
-        if (errors.length > 0) {
-            console.error('Configuration errors:');
-            errors.forEach(error => console.error(`❌ ${error}`));
-        }
-
         if (warnings.length > 0) {
             console.warn('Configuration warnings:');
-            warnings.forEach(warning => console.warn(`⚠️ ${warning}`));
+            warnings.forEach(warning => console.warn(warning));
+            console.warn('Please set up your environment variables (.env file)');
         }
-
-        if (errors.length === 0 && warnings.length === 0) {
-            console.log('✅ Configuration validated successfully');
-        }
-
-        return { errors, warnings };
     }
 
     // Helper to get nested object values
     getNestedValue(obj, path) {
-        return path.split('.').reduce((current, key) => {
-            return current && current[key] !== undefined ? current[key] : null;
-        }, obj);
+        return path.split('.').reduce((current, key) => current && current[key], obj);
     }
 
-    // Get specific configuration section
+    // Log configuration status (without sensitive information)
+    logConfigStatus() {
+        const status = {
+            firebase: {
+                configured: !this.config.firebase.apiKey.includes('demo-mode'),
+                project: this.config.firebase.projectId
+            },
+            spoonacular: {
+                configured: !this.config.spoonacular.apiKey.includes('demo-mode')
+            },
+            environment: this.config.app.environment,
+            debugMode: this.config.features.debugMode
+        };
+
+        console.log('Configuration Status:', status);
+        
+        if (!status.firebase.configured || !status.spoonacular.configured) {
+            console.log('');
+            console.log('Setup Required:');
+            if (!status.firebase.configured) {
+                console.log('  • Configure Firebase: Add Firebase keys to .env file');
+            }
+            if (!status.spoonacular.configured) {
+                console.log('  • Configure Spoonacular: Add Spoonacular API key to .env file');
+            }
+            console.log('  • Use format: VITE_FIREBASE_API_KEY=your-key');
+            console.log('  • See README.md for detailed setup instructions');
+        }
+    }
+
+    // Public methods to get configuration values
     getFirebaseConfig() {
-        return this.config.firebase;
+        return this.config?.firebase || {};
     }
 
     getSpoonacularConfig() {
-        return this.config.spoonacular;
+        return this.config?.spoonacular || {};
     }
 
     getAppConfig() {
-        return this.config.app;
+        return this.config?.app || {};
     }
 
-    // Check if running in development mode
-    isDevelopment() {
-        return this.config.app.environment === 'development';
+    getFeatures() {
+        return this.config?.features || {};
     }
 
-    // Check if debug mode is enabled
+    // Check if configuration is ready for production use
+    isProductionReady() {
+        return this.config && 
+               !this.config.firebase.apiKey.includes('demo-mode') &&
+               !this.config.spoonacular.apiKey.includes('demo-mode') &&
+               this.config.firebase.projectId !== 'demo-project';
+    }
+
+    // Get configuration value by path
+    get(path, defaultValue = null) {
+        return this.getNestedValue(this.config, path) || defaultValue;
+    }
+
+    // Check if app is in debug mode
     isDebugMode() {
-        return this.config.app.debugMode;
+        return this.config?.features?.debugMode || false;
     }
 
-    // Update configuration at runtime
-    updateConfig(path, value) {
-        const keys = path.split('.');
-        let current = this.config;
-
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (!current[keys[i]]) {
-                current[keys[i]] = {};
-            }
-            current = current[keys[i]];
+    // Wait for configuration to be ready
+    async waitForConfig() {
+        while (!this.isInitialized) {
+            await new Promise(resolve => setTimeout(resolve, 10));
         }
-
-        current[keys[keys.length - 1]] = value;
-        console.log(`Configuration updated: ${path} = ${value}`);
-    }
-
-    // Export configuration for external use
-    exportConfig() {
-        return JSON.parse(JSON.stringify(this.config));
-    }
-
-    // Create .env template
-    generateEnvTemplate() {
-        return `# Smart Recipe Tracker Environment Variables
-
-# Firebase Configuration
-VITE_FIREBASE_API_KEY=${this.config.firebase.apiKey}
-VITE_FIREBASE_AUTH_DOMAIN=${this.config.firebase.authDomain}
-VITE_FIREBASE_PROJECT_ID=${this.config.firebase.projectId}
-VITE_FIREBASE_STORAGE_BUCKET=${this.config.firebase.storageBucket}
-VITE_FIREBASE_MESSAGING_SENDER_ID=${this.config.firebase.messagingSenderId}
-VITE_FIREBASE_APP_ID=${this.config.firebase.appId}
-VITE_FIREBASE_MEASUREMENT_ID=${this.config.firebase.measurementId}
-
-# Spoonacular API Configuration
-VITE_SPOONACULAR_API_KEY=${this.config.spoonacular.apiKey}
-VITE_SPOONACULAR_API_SECRET=${this.config.spoonacular.apiSecret}
-
-# Application Configuration
-NODE_ENV=${this.config.app.environment}
-VITE_DEBUG=${this.config.app.debugMode}
-`;
+        return this.config;
     }
 }
 
-// Initialize configuration manager
-const configManager = new ConfigManager();
+// Create global configuration manager instance
+window.configManager = new ConfigManager();
 
-// Export for global use
-window.configManager = configManager;
-
-// Log configuration status
-if (configManager.isDebugMode()) {
-    console.log('Configuration Manager loaded:', configManager.exportConfig());
+// Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ConfigManager;
 }
 
-console.log('Configuration Manager initialized successfully');
+console.log('Configuration Manager loaded (Environment Variables Only)');

@@ -1106,5 +1106,308 @@ window.addEventListener('resize', () => {
         window.chartManager.resizeAllCharts();
     }
 });
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Remove duplicate preference buttons if they exist
+    function removeDuplicatePreferences() {
+        const prefButtons = document.querySelectorAll('[onclick*="preferences"], [onclick*="settings"]');
+        if (prefButtons.length > 1) {
+            // Keep only the first one, remove others
+            for (let i = 1; i < prefButtons.length; i++) {
+                prefButtons[i].remove();
+                console.log('🗑️ Removed duplicate preferences button');
+            }
+        }
+    }
+
+    // Fix modal closing issues
+    function fixModalHandling() {
+        // Ensure Bootstrap modals can be properly closed
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('hidden.bs.modal', function() {
+                // Remove any lingering backdrop
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => backdrop.remove());
+                
+                // Restore body scroll
+                document.body.style.overflow = '';
+                document.body.classList.remove('modal-open');
+            });
+        });
+    }
+
+    // Add proper preferences handler if missing
+    function addPreferencesHandler() {
+        // Check if preferences modal exists
+        let preferencesModal = document.getElementById('preferencesModal');
+        
+        if (!preferencesModal) {
+            // Create preferences modal if it doesn't exist
+            preferencesModal = createPreferencesModal();
+            document.body.appendChild(preferencesModal);
+        }
+
+        // Add global preferences function if it doesn't exist
+        if (typeof window.openPreferences === 'undefined') {
+            window.openPreferences = function() {
+                const modal = new bootstrap.Modal(document.getElementById('preferencesModal'));
+                modal.show();
+            };
+        }
+
+        if (typeof window.savePreferences === 'undefined') {
+            window.savePreferences = function() {
+                // Collect preference values
+                const preferences = {
+                    dailyCalories: document.getElementById('dailyCalories')?.value || 2000,
+                    proteinGoal: document.getElementById('proteinGoal')?.value || 150,
+                    dietaryRestrictions: document.getElementById('dietaryRestrictions')?.value || '',
+                    maxCookTime: document.getElementById('maxCookTime')?.value || 30,
+                    cuisinePreference: document.getElementById('cuisinePreference')?.value || '',
+                    budgetRange: document.getElementById('budgetRange')?.value || 'medium'
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('userPreferences', JSON.stringify(preferences));
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('preferencesModal'));
+                if (modal) modal.hide();
+                
+                // Show success message
+                if (window.app) {
+                    window.app.showSuccess('Preferences saved successfully!');
+                } else {
+                    alert('Preferences saved successfully!');
+                }
+                
+                console.log('💾 Saved preferences:', preferences);
+            };
+        }
+    }
+
+    // Create preferences modal HTML if it doesn't exist
+    function createPreferencesModal() {
+        const modalHTML = `
+            <div class="modal fade" id="preferencesModal" tabindex="-1" aria-labelledby="preferencesModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="preferencesModalLabel">
+                                <i class="fas fa-cog me-2"></i>User Preferences
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="mb-3">Nutrition Goals</h6>
+                                    <div class="mb-3">
+                                        <label for="dailyCalories" class="form-label">Daily Calories</label>
+                                        <input type="number" class="form-control" id="dailyCalories" value="2000">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="proteinGoal" class="form-label">Protein Goal (g)</label>
+                                        <input type="number" class="form-control" id="proteinGoal" value="150">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="dietaryRestrictions" class="form-label">Dietary Restrictions</label>
+                                        <select class="form-control" id="dietaryRestrictions">
+                                            <option value="">None</option>
+                                            <option value="vegetarian">Vegetarian</option>
+                                            <option value="vegan">Vegan</option>
+                                            <option value="gluten-free">Gluten-Free</option>
+                                            <option value="keto">Keto</option>
+                                            <option value="paleo">Paleo</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-3">Recipe Preferences</h6>
+                                    <div class="mb-3">
+                                        <label for="maxCookTime" class="form-label">Max Cooking Time (minutes)</label>
+                                        <input type="number" class="form-control" id="maxCookTime" value="30">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="cuisinePreference" class="form-label">Preferred Cuisine</label>
+                                        <select class="form-control" id="cuisinePreference">
+                                            <option value="">Any</option>
+                                            <option value="italian">Italian</option>
+                                            <option value="asian">Asian</option>
+                                            <option value="mexican">Mexican</option>
+                                            <option value="mediterranean">Mediterranean</option>
+                                            <option value="american">American</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="budgetRange" class="form-label">Budget Range per Meal</label>
+                                        <select class="form-control" id="budgetRange">
+                                            <option value="low">$0-$10</option>
+                                            <option value="medium">$10-$20</option>
+                                            <option value="high">$20+</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="savePreferences()">
+                                <i class="fas fa-save me-2"></i>Save Preferences
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const div = document.createElement('div');
+        div.innerHTML = modalHTML;
+        return div.firstElementChild;
+    }
+
+    // Load saved preferences
+    function loadSavedPreferences() {
+        const saved = localStorage.getItem('userPreferences');
+        if (saved) {
+            try {
+                const preferences = JSON.parse(saved);
+                
+                // Wait a bit for modal to be available
+                setTimeout(() => {
+                    Object.keys(preferences).forEach(key => {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            element.value = preferences[key];
+                        }
+                    });
+                }, 100);
+            } catch (error) {
+                console.error('Error loading preferences:', error);
+            }
+        }
+    }
+
+    // Apply all fixes
+    removeDuplicatePreferences();
+    fixModalHandling();
+    addPreferencesHandler();
+    loadSavedPreferences();
+
+    console.log('✅ Navbar preferences fixes applied');
+});
+
+// Fix settings/preferences button onclick if it exists
+function fixPreferencesButton() {
+    // Find any preferences/settings buttons and fix their onclick
+    const settingsButtons = document.querySelectorAll('a[href*="settings"], a[onclick*="settings"], [onclick*="preferences"]');
+    settingsButtons.forEach(button => {
+        button.onclick = function(e) {
+            e.preventDefault();
+            if (typeof openPreferences === 'function') {
+                openPreferences();
+            }
+        };
+    });
+}
+
+// Run the fix after a short delay to ensure DOM is ready
+setTimeout(fixPreferencesButton, 500);
+
+// temp
+console.log('🔍 Recipe Search Debug Started');
+
+// Check if all required objects exist
+console.log('🔧 Checking dependencies...');
+console.log('configManager exists:', !!window.configManager);
+console.log('spoonacularAPI exists:', !!window.spoonacularAPI);
+console.log('app exists:', !!window.app);
+
+// Check configuration
+if (window.configManager) {
+    console.log('📋 Configuration status:');
+    const spoonacularConfig = window.configManager.getSpoonacularConfig();
+    console.log('Spoonacular API key configured:', 
+        spoonacularConfig.apiKey && !spoonacularConfig.apiKey.includes('demo-mode'));
+    console.log('API key starts with:', spoonacularConfig.apiKey ? spoonacularConfig.apiKey.substring(0, 10) + '...' : 'undefined');
+}
+
+// Test API availability
+if (window.spoonacularAPI) {
+    console.log('🧪 Testing API...');
+    
+    // Test search function
+    window.spoonacularAPI.searchRecipes('chicken', { number: 3 })
+        .then(result => {
+            console.log('✅ Search test successful:', result);
+            if (result.recipes && result.recipes.length > 0) {
+                console.log('📄 Sample recipe:', result.recipes[0]);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Search test failed:', error);
+            console.log('🔄 Attempting demo mode...');
+            
+            // Try demo mode
+            const demoResult = {
+                recipes: [
+                    {
+                        id: 999,
+                        title: "Demo Recipe - Chicken Pasta",
+                        image: "https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop",
+                        readyInMinutes: 25,
+                        servings: 4,
+                        nutrition: { calories: 450, protein: 30, carbs: 40, fat: 15 }
+                    }
+                ],
+                totalResults: 1
+            };
+            
+            console.log('📝 Demo data available:', demoResult);
+        });
+}
+
+// Test search input element
+const searchInput = document.getElementById('recipeSearch');
+console.log('🔍 Search input element:', searchInput);
+if (searchInput) {
+    console.log('Search input value:', searchInput.value);
+    
+    // Test search trigger
+    console.log('🧪 Testing search trigger...');
+    if (window.app && typeof window.app.searchRecipes === 'function') {
+        console.log('✅ app.searchRecipes function exists');
+    } else {
+        console.log('❌ app.searchRecipes function missing');
+    }
+}
+
+// Test results container
+const resultsContainer = document.getElementById('recipeResults');
+console.log('📄 Results container:', resultsContainer);
+
+// Manual search test
+function testManualSearch() {
+    console.log('🔄 Running manual search test...');
+    
+    if (window.app) {
+        window.app.searchRecipes('pasta')
+            .then(() => console.log('✅ Manual search completed'))
+            .catch(error => console.error('❌ Manual search failed:', error));
+    } else {
+        console.log('❌ window.app not available for manual test');
+    }
+}
+
+// Run manual test after delay
+setTimeout(testManualSearch, 2000);
+
+console.log('🔍 Debug complete. Check results above.');
+console.log('💡 If search fails, ensure you have:');
+console.log('   1. Valid Spoonacular API key in .env file');
+console.log('   2. Internet connection');
+console.log('   3. All JavaScript files loaded');
+console.log('   4. No browser console errors');
 
 console.log('🚀 Enhanced Smart Recipe App loaded successfully');

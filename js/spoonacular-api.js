@@ -530,5 +530,171 @@ const spoonacularAPI = new SpoonacularAPI();
 
 // Export for global use
 window.spoonacularAPI = spoonacularAPI;
+class SpoonacularAPIFixed extends SpoonacularAPI {
+    constructor() {
+        super();
+        this.initializeApiKey();
+    }
+
+    async initializeApiKey() {
+        // Wait for config manager to be ready
+        let attempts = 0;
+        while (!window.configManager && attempts < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+
+        if (window.configManager) {
+            await window.configManager.waitForConfig();
+            const spoonacularConfig = window.configManager.getSpoonacularConfig();
+            
+            if (spoonacularConfig.apiKey && !spoonacularConfig.apiKey.includes('demo-mode')) {
+                this.apiKey = spoonacularConfig.apiKey;
+                console.log('✅ Spoonacular API key loaded from config');
+            } else {
+                console.warn('⚠️ Using demo mode - please configure your Spoonacular API key');
+                this.apiKey = 'demo-mode'; // Will trigger demo data
+            }
+        } else {
+            console.warn('⚠️ Config manager not available, using demo mode');
+            this.apiKey = 'demo-mode';
+        }
+    }
+
+    // Override the search method with better error handling and demo data
+    async searchRecipes(query, options = {}) {
+        console.log('🔍 Searching recipes:', query, options);
+
+        // If using demo mode, return sample data
+        if (this.apiKey === 'demo-mode' || this.apiKey === 'YOUR_SPOONACULAR_API_KEY') {
+            console.log('📝 Using demo data for recipe search');
+            return this.getDemoRecipes(query);
+        }
+
+        try {
+            const result = await super.searchRecipes(query, options);
+            console.log('✅ Recipe search successful:', result);
+            return result;
+        } catch (error) {
+            console.error('❌ Recipe search failed:', error);
+            
+            // Fallback to demo data on error
+            console.log('📝 Falling back to demo data');
+            return this.getDemoRecipes(query);
+        }
+    }
+
+    // Demo data for when API is not available
+    getDemoRecipes(query = '') {
+        const demoRecipes = [
+            {
+                id: 1,
+                title: "Creamy Chicken Alfredo",
+                image: "https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop",
+                readyInMinutes: 30,
+                servings: 4,
+                nutrition: { calories: 650, protein: 35, carbs: 45, fat: 28 },
+                summary: "A rich and creamy pasta dish with tender chicken and parmesan sauce."
+            },
+            {
+                id: 2,
+                title: "Mediterranean Quinoa Bowl",
+                image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop",
+                readyInMinutes: 25,
+                servings: 2,
+                nutrition: { calories: 420, protein: 18, carbs: 52, fat: 12 },
+                summary: "Healthy quinoa bowl with fresh vegetables and Mediterranean flavors."
+            },
+            {
+                id: 3,
+                title: "Spicy Thai Basil Stir Fry",
+                image: "https://images.unsplash.com/photo-1559314809-0f31657def5e?w=400&h=300&fit=crop",
+                readyInMinutes: 20,
+                servings: 3,
+                nutrition: { calories: 380, protein: 22, carbs: 35, fat: 15 },
+                summary: "Quick and flavorful Thai-inspired stir fry with fresh basil."
+            },
+            {
+                id: 4,
+                title: "Classic Margherita Pizza",
+                image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop",
+                readyInMinutes: 45,
+                servings: 6,
+                nutrition: { calories: 520, protein: 20, carbs: 65, fat: 18 },
+                summary: "Traditional Italian pizza with fresh mozzarella and basil."
+            },
+            {
+                id: 5,
+                title: "Grilled Salmon with Lemon",
+                image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop",
+                readyInMinutes: 15,
+                servings: 2,
+                nutrition: { calories: 340, protein: 28, carbs: 8, fat: 22 },
+                summary: "Fresh salmon grilled to perfection with lemon and herbs."
+            },
+            {
+                id: 6,
+                title: "Chocolate Chip Cookies",
+                image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=300&fit=crop",
+                readyInMinutes: 35,
+                servings: 24,
+                nutrition: { calories: 180, protein: 3, carbs: 25, fat: 8 },
+                summary: "Classic homemade chocolate chip cookies, soft and chewy."
+            }
+        ];
+
+        // Filter by query if provided
+        let filteredRecipes = demoRecipes;
+        if (query && query.trim()) {
+            const searchTerm = query.toLowerCase();
+            filteredRecipes = demoRecipes.filter(recipe => 
+                recipe.title.toLowerCase().includes(searchTerm) ||
+                recipe.summary.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        return {
+            recipes: filteredRecipes,
+            totalResults: filteredRecipes.length,
+            offset: 0,
+            number: filteredRecipes.length
+        };
+    }
+
+    // Override random recipes with demo data
+    async getRandomRecipes(options = {}) {
+        if (this.apiKey === 'demo-mode' || this.apiKey === 'YOUR_SPOONACULAR_API_KEY') {
+            const demoData = this.getDemoRecipes();
+            // Shuffle array and return requested number
+            const shuffled = demoData.recipes.sort(() => 0.5 - Math.random());
+            const number = options.number || 10;
+            return {
+                recipes: shuffled.slice(0, number)
+            };
+        }
+
+        try {
+            return await super.getRandomRecipes(options);
+        } catch (error) {
+            console.error('Random recipes failed, using demo data:', error);
+            return this.getRandomRecipes({ ...options, demo: true });
+        }
+    }
+}
+
+// Replace the global instance with the fixed version
+function initializeFixedSpoonacularAPI() {
+    if (typeof window !== 'undefined') {
+        window.spoonacularAPI = new SpoonacularAPIFixed();
+        console.log('🥄 Fixed Spoonacular API integration loaded');
+    }
+}
+
+// Initialize when ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeFixedSpoonacularAPI);
+} else {
+    initializeFixedSpoonacularAPI();
+}
 
 console.log('Enhanced Spoonacular API loaded successfully');
